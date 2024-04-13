@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "commons.proto";
+
+option java_package = "ar.com.itba.edu.grpc.checkin";
+option java_multiple_files = true;
+
+service QueryService {
+  rpc QueryCounterStatus(google.protobuf.StringValue) returns (RepeatedQueryCounterResponse);
+  rpc QueryCheckin(QueryCheckinRequest) returns (RepeatedQueryCheckinResponse);
+  rpc QueryCounterHistory(QueryCounterHistoryRequest) returns (RepeatedQueryCounterResponse);
+}
+
+
+message QueryCounterHistoryRequest {
+   string sector = 1;
+   int32 counter = 2;
+}
+
+message QueryCounterResponse {
+  optional string sector = 1;
+  Range counters = 2;
+  string airline = 3;
+  repeated string flights = 4;
+  int32 people = 5;
+}
+
+message RepeatedQueryCounterResponse {
+  repeated QueryCounterResponse responses = 1;
+}
+
+message QueryCheckinRequest {
+  optional string sector = 1;
+  optional string airline = 2;
+}
+
+message QueryCheckinResponse {
+  string sector = 1;
+  int32 counter = 2;
+  string airline = 3;
+  string flight = 4;
+  string booking = 5;
+}
+
+message RepeatedQueryCheckinResponse {
+  repeated QueryCheckinResponse responses = 1;
+}
+

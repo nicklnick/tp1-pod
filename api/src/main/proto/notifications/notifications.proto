@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "commons.proto";
+
+option java_package = "ar.com.itba.edu.grpc.checkin";
+option java_multiple_files = true;
+
+service NotificationsService {
+  rpc RegisterForNotifications(google.protobuf.StringValue) returns (stream NotificationsResponse);
+  rpc UnregisterForNotifications(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc NotificationHistory(google.protobuf.StringValue) returns (NotificationsHistoryResponse);
+}
+
+enum NotificationType {
+  NOTIFICATION_UNSPECIFIED = 0;
+  NOTIFICATION_AIRLINE_ADDED = 1;
+  NOTIFICATION_ASSIGNED_COUNTERS = 2;
+  NOTIFICATION_PASSENGER_STARTED_CHECKIN = 3;
+  NOTIFICATION_PASSENGER_COMPLETED_CHECKIN = 4;
+  NOTIFICATION_DISMISSED_COUNTERS = 5;
+  NOTIFICATION_ASSIGNED_COUNTERS_PENDING = 6;
+  NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED = 7;
+}
+
+message NotificationsResponse {
+  NotificationType type= 2;
+  optional string sector = 3;
+  optional Range counters = 4;
+  optional string booking = 5;
+  optional int32 counter = 6;
+  repeated string flights = 7;
+  optional int32 people = 8;
+  optional int32 pending = 9;
+
+}
+
+message NotificationsHistoryResponse {
+  repeated NotificationsResponse notifications = 1;
+}

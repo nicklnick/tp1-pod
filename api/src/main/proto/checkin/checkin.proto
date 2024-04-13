@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "commons.proto";
+
+option java_package = "ar.com.itba.edu.grpc.checkin";
+option java_multiple_files = true;
+
+service CheckInService {
+  rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
+  rpc PassengerCheckin(PassengerCheckInRequest) returns (PassengerCheckInRequest);
+  rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);
+}
+
+message PassengerCheckInRequest {
+  int32 counter = 1;
+  string sector = 2;
+  string booking = 3;
+}
+
+message FetchCounterResponse {
+  Range counters = 1;
+  string sector = 2;
+  int32 people = 3;
+  string airline = 4;
+}
+
+message PassengerCheckinResponse {
+  Range counters = 1;
+  string sector = 2;
+  string booking = 3;
+  string airline = 4;
+}
+
+message PassengerStatusResponse {
+  int32 counter = 1;
+  string sector = 2;
+  string booking = 3;
+  string airline = 4;
+  int32 people = 5;
+}
