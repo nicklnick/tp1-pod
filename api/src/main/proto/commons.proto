@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_package = "ar.edu.itba.pod.grpc.commons";
+option java_multiple_files = true;
+
+message Range {
+  int32 from = 1;
+  int32 to = 2;
+}
