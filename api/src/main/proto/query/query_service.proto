@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "commons.proto";
 
-option java_package = "ar.com.itba.edu.grpc.checkin";
+option java_package = "ar.edu.itba.pod.grpc.query";
 option java_multiple_files = true;
 
 service QueryService {

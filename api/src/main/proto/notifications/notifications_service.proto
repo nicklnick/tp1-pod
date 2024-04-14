@@ -4,7 +4,7 @@ import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 import "commons.proto";
 
-option java_package = "ar.com.itba.edu.grpc.checkin";
+option java_package = "ar.edu.itba.pod.grpc.notifications";
 option java_multiple_files = true;
 
 service NotificationsService {
