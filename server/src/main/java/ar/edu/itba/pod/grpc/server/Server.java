@@ -1,6 +1,9 @@
 package ar.edu.itba.pod.grpc.server;
 
+import ar.edu.itba.pod.grpc.models.Airport;
+import ar.edu.itba.pod.grpc.servant.AdminServant;
 import io.grpc.ServerBuilder;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +17,7 @@ public class Server {
 
         int port = 50051;
         io.grpc.Server server = ServerBuilder.forPort(port)
+                .addService(new AdminServant())
                 .build();
         server.start();
         logger.info("Server started, listening on " + port);

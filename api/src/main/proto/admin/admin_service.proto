@@ -31,6 +31,5 @@ message PassengerRequest {
 }
 
 message PassengerResponse {
-  string booking = 1;
-  bool success = 2;
+  bool success = 1;
 }

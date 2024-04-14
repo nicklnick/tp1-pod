@@ -4,11 +4,23 @@ import java.util.*;
 
 public class Airport {
 
+    private static Airport instance;
     private final Map<Sector, List<Counter>> sectors = new HashMap<>();
     private final Set<Passenger> expectedPassengers = new HashSet<>();
     private final Set<Flight> flights = new HashSet<>();
 
     private int lastCounterNumber = 1;
+
+    private Airport() {
+    }
+
+    public synchronized static Airport getInstance(){
+        if (instance == null) {
+            instance = new Airport();
+        }
+
+        return instance;
+    }
 
     public void addSector(Sector sector) throws IllegalArgumentException {
         if (sectors.containsKey(sector))
