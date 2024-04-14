@@ -25,15 +25,13 @@ enum NotificationType {
 }
 
 message NotificationsResponse {
-  NotificationType type= 2;
-  optional string sector = 3;
-  optional Range counters = 4;
-  optional string booking = 5;
-  optional int32 counter = 6;
-  repeated string flights = 7;
-  optional int32 people = 8;
-  optional int32 pending = 9;
-
+  NotificationType type= 1;
+  optional string sector = 2;
+  repeated Range counter_range = 3;
+  optional string booking = 4;
+  repeated string flights = 5;
+  optional int32 people = 6;
+  optional int32 pendings_ahead = 7;
 }
 
 message NotificationsHistoryResponse {

@@ -21,7 +21,7 @@ message CounterRequest {
 }
 
 message CounterResponse {
-  repeated Range counter_ranges = 1;
+  Range counter_range = 1;
 }
 
 message PassengerRequest {

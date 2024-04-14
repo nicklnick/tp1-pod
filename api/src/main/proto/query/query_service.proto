@@ -7,11 +7,14 @@ option java_package = "ar.com.itba.edu.grpc.checkin";
 option java_multiple_files = true;
 
 service QueryService {
-  rpc QueryCounterStatus(google.protobuf.StringValue) returns (RepeatedQueryCounterResponse);
+  rpc QueryCounterStatus(QueryCounterRequest) returns (RepeatedQueryCounterResponse);
   rpc QueryCheckin(QueryCheckinRequest) returns (RepeatedQueryCheckinResponse);
   rpc QueryCounterHistory(QueryCounterHistoryRequest) returns (RepeatedQueryCounterResponse);
 }
 
+message QueryCounterRequest {
+  optional string sector = 1;
+}
 
 message QueryCounterHistoryRequest {
    string sector = 1;

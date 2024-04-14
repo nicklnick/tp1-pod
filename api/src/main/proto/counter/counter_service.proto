@@ -13,9 +13,9 @@ service CounterService {
   rpc ListSectors(google.protobuf.Empty) returns (SectorResponse);
   rpc ListCounters(CounterRequest) returns (CounterResponse);
   rpc AssignCounters(AssignRequest) returns (AssignResponse);
-  rpc FreeCounters(FreeCountersRequest) returns (stream FreeCountersResponse);
+  rpc FreeCounters(FreeCountersRequest) returns (RepeatedFreeCountersResponse);
   rpc CheckInCounters(CheckInRequest) returns (CheckInResponse);
-  rpc ListPendingAssignments(google.protobuf.StringValue) returns (stream PendingAssignmentResponse);
+  rpc ListPendingAssignments(google.protobuf.StringValue) returns (RepeatedFreeCountersResponse);
 }
 
 message CounterRequest {
@@ -53,6 +53,7 @@ message AssignRequest {
 message AssignResponse {
   AssignmentStatus status = 1;
   optional int32 pendings_ahead = 2;
+  Range counter_range = 3;
 }
 
 enum AssignmentStatus {
@@ -67,10 +68,14 @@ message FreeCountersRequest {
   string airline = 3;
 }
 
+message RepeatedFreeCountersResponse {
+  repeated FreeCountersResponse freed_counters = 1;
+}
+
 message FreeCountersResponse {
   repeated string flights = 1;
   int32 counter_qty = 2;
-  Range counters = 3;
+  Range counter_range = 3;
 }
 
 message CheckInRequest {
@@ -90,4 +95,8 @@ message PendingAssignmentResponse {
   int32 counter_qty = 1;
   string airline = 2;
   repeated string flights = 3;
+}
+
+message RepeatedPendingAssignmentResponse {
+  repeated PendingAssignmentResponse pending_assignments = 1;
 }

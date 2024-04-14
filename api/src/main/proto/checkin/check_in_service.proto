@@ -8,7 +8,7 @@ option java_multiple_files = true;
 
 service CheckInService {
   rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
-  rpc PassengerCheckin(PassengerCheckInRequest) returns (PassengerCheckInRequest);
+  rpc PassengerCheckin(PassengerCheckInRequest) returns (PassengerCheckinResponse);
   rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);
 }
 
@@ -19,23 +19,33 @@ message PassengerCheckInRequest {
 }
 
 message FetchCounterResponse {
-  Range counters = 1;
+  optional Range counter_range = 1;
   string sector = 2;
   int32 people = 3;
   string airline = 4;
+  string flight = 5;
 }
 
 message PassengerCheckinResponse {
-  Range counters = 1;
-  string sector = 2;
-  string booking = 3;
-  string airline = 4;
+  Range counter_range = 1;
+  string booking = 2;
+  string airline = 3;
+  int32 people = 4;
+  string flight = 5;
 }
 
 message PassengerStatusResponse {
-  int32 counter = 1;
+  Range counter_range = 1;
   string sector = 2;
-  string booking = 3;
-  string airline = 4;
-  int32 people = 5;
+  string airline = 3;
+  optional int32 people = 4;
+  string flight = 5;
+  PassengerCheckInStatus status = 6;
+}
+
+enum PassengerCheckInStatus {
+  UNDEFINED = 0;
+  PENDING = 1;
+  ONGOING = 2;
+  FINISHED = 3;
 }
