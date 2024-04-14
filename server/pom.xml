@@ -2,17 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>tp1-pod-parent</artifactId>
+    <artifactId>tpe1-g1-parent</artifactId>
     <groupId>ar.edu.itba.pod.grpc</groupId>
     <version>2024.1Q</version>
   </parent>
-  <artifactId>tp1-pod-server</artifactId>
+  <artifactId>tpe1-g1-server</artifactId>
   <version>2024.1Q</version>
-  <name>tp1-pod-server</name>
+  <name>tpe1-g1-server</name>
   <dependencies>
     <dependency>
       <groupId>ar.edu.itba.pod.grpc</groupId>
-      <artifactId>tp1-pod-api</artifactId>
+      <artifactId>tpe1-g1-api</artifactId>
       <version>2024.1Q</version>
     </dependency>
   </dependencies>
