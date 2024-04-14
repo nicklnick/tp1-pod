@@ -10,9 +10,9 @@ option java_package = "ar.edu.itba.pod.grpc.admin";
 option java_multiple_files = true;
 
 service AdminService {
-  rpc AddSector(google.protobuf.StringValue) returns (google.protobuf.Empty); // ok
-  rpc AddCounters(CounterRequest) returns (CounterResponse); // ok
-  rpc AddExpectedPassenger(stream PassengerRequest) returns (stream PassengerResponse); // ok
+  rpc AddSector(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc AddCounters(CounterRequest) returns (CounterResponse);
+  rpc AddExpectedPassenger(stream PassengerRequest) returns (stream PassengerResponse);
 }
 
 message CounterRequest {

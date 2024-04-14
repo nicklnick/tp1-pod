@@ -10,8 +10,8 @@ option java_package = "ar.edu.itba.pod.grpc.counter";
 option java_multiple_files = true;
 
 service CounterService {
-  rpc ListSectors(google.protobuf.Empty) returns (SectorResponse);  // ok
-  rpc ListCounters(CounterRequest) returns (CounterResponse); // ok
+  rpc ListSectors(google.protobuf.Empty) returns (SectorResponse);
+  rpc ListCounters(CounterRequest) returns (CounterResponse);
   rpc AssignCounters(AssignRequest) returns (AssignResponse);
   rpc FreeCounters(FreeCountersRequest) returns (stream FreeCountersResponse);
   rpc CheckInCounters(CheckInRequest) returns (CheckInResponse);
