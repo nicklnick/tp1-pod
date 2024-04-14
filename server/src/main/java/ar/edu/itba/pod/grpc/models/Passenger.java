@@ -1,6 +1,6 @@
 package ar.edu.itba.pod.grpc.models;
 
-public class Passenger {
+public class Passenger implements Comparable<Passenger> {
 
     private final Booking booking;
     private PassengerStatus status;
@@ -25,5 +25,10 @@ public class Passenger {
 
     public PassengerStatus getStatus() {
         return status;
+    }
+
+    @Override
+    public int compareTo(Passenger o) {
+        return this.booking.compareTo(o.booking);
     }
 }

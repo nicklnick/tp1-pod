@@ -16,4 +16,9 @@ public class Sector implements Comparable<Sector> {
     public int compareTo(Sector o) {
         return this.name.compareTo(o.name);
     }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }

@@ -1,6 +1,6 @@
 package ar.edu.itba.pod.grpc.models;
 
-public class Booking {
+public class Booking implements Comparable<Booking> {
 
     private final Flight flight;
     private final String code;
@@ -16,5 +16,10 @@ public class Booking {
 
     public String getCode() {
         return code;
+    }
+
+    @Override
+    public int compareTo(Booking o) {
+        return this.code.compareTo(o.code);
     }
 }
