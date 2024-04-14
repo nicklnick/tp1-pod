@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "commons.proto";
+
+package admin;
+
+option java_package = "ar.edu.itba.pod.grpc.admin";
+option java_multiple_files = true;
+
+service AdminService {
+  rpc AddSector(google.protobuf.StringValue) returns (google.protobuf.Empty); // ok
+  rpc AddCounters(CounterRequest) returns (CounterResponse); // ok
+  rpc AddExpectedPassenger(stream PassengerRequest) returns (stream PassengerResponse); // ok
+}
+
+message CounterRequest {
+  string sector_name = 1;
+  int32 counter_qty = 2;
+}
+
+message CounterResponse {
+  repeated Range counter_ranges = 1;
+}
+
+message PassengerRequest {
+  string booking = 1;
+  string flight = 2;
+  string airline = 3;
+}
+
+message PassengerResponse {
+  string booking = 1;
+  bool success = 2;
+}
