@@ -2,19 +2,17 @@ package ar.edu.itba.pod.grpc.models;
 
 import java.util.Objects;
 
-public class Booking implements Comparable<Booking> {
 
-    private final Flight flight;
+// para mi no tiene que existir
+public class Booking implements Comparable<Booking> {
     private final String code;
 
-    public Booking(Flight flight, String code) {
-        this.flight = flight;
+    public Booking(String code) {
+
         this.code = code;
     }
 
-    public Flight getFlight() {
-        return flight;
-    }
+
 
     public String getCode() {
         return code;
@@ -30,11 +28,11 @@ public class Booking implements Comparable<Booking> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Booking booking = (Booking) o;
-        return Objects.equals(flight, booking.flight) && Objects.equals(code, booking.code);
+        return Objects.equals(code, booking.code);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(flight, code);
+        return Objects.hash(code);
     }
 }

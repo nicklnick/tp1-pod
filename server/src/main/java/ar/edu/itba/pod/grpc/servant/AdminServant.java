@@ -8,7 +8,6 @@ import io.grpc.stub.StreamObserver;
 
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
-    private final Airport airport = Airport.getInstance();
 
     @Override
     public void addSector(StringValue request, StreamObserver<Empty> responseObserver) {
@@ -16,9 +15,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
         Sector sector = new Sector(sectorName);
         try {
-            airport.addSector(sector);
-            responseObserver.onNext(Empty.newBuilder().build());
-            responseObserver.onCompleted();
+
         } catch (IllegalArgumentException e) {
             responseObserver.onError(e);
         }
@@ -29,17 +26,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
         return new StreamObserver<>() {
             @Override
             public void onNext(PassengerRequest passengerRequest) {
-                Airline airline = new Airline(passengerRequest.getAirline());
-                Flight flight = new Flight(airline, passengerRequest.getFlight());
-                Booking booking = new Booking(flight, passengerRequest.getBooking());
 
-                Passenger passenger = new Passenger(booking, Status.PENDING);
-                try {
-                    airport.addExpectedPassenger(passenger);
-                    responseObserver.onNext(PassengerResponse.newBuilder().setSuccess(true).build());
-                } catch (IllegalArgumentException e) {
-                    responseObserver.onNext(PassengerResponse.newBuilder().setSuccess(false).build());
-                }
             }
 
             @Override

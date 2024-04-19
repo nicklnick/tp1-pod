@@ -1,9 +1,7 @@
 package ar.edu.itba.pod.grpc.server;
 
-import ar.edu.itba.pod.grpc.models.Airport;
 import ar.edu.itba.pod.grpc.servant.AdminServant;
 import io.grpc.ServerBuilder;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
