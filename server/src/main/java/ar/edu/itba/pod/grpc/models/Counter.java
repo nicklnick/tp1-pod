@@ -6,40 +6,42 @@ import java.util.List;
 public class Counter implements Comparable<Counter> {
 
     private final int number;
-    private final Sector sector;
-    private Airline airline;
-    private List<Flight> flights;
+    private Boolean isBusy;
 
-    public Counter(Sector sector, int number) {
-        this.sector = sector;
+    private CounterRange counterRange;
+
+    public Counter(int number) {
         this.number = number;
-        this.flights = new ArrayList<>();
+        isBusy = false;
     }
 
     public int getNumber() {
         return number;
     }
 
-    public Sector getSector() {
-        return sector;
+    public synchronized Boolean getIsBusy() {
+        return isBusy;
+    }
+    public synchronized void setIsBusy(Boolean isBusy) {
+        this.isBusy = isBusy;
     }
 
-    public Airline getAirline() {
-        return airline;
+    public void setCounterRange(CounterRange counterRange) {
+        this.counterRange = counterRange;
     }
 
-    public void setAirline(Airline airline) {
-        this.airline = airline;
+    public CounterRange getCounterRange() {
+        return counterRange;
     }
 
-    public List<Flight> getFlights() {
-        return flights;
+    public boolean isAssignedToRange(){
+        return counterRange !=null;
     }
 
-    public void setFlights(List<Flight> flights) {
-        this.flights = flights;
+    public void freeCounter() {
+        this.counterRange = null;
+        this.isBusy = false;
     }
-
     @Override
     public int compareTo(Counter o) {
         return Integer.compare(this.number, o.number);

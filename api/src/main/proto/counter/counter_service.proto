@@ -56,6 +56,7 @@ message AssignResponse {
   Range counter_range = 3;
 }
 
+// hacerlo objeto propio de CounterRange
 enum AssignmentStatus {
   UNDEFINED = 0;
   PENDING = 1;
