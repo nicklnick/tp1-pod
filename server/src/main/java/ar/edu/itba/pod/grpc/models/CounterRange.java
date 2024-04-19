@@ -1,23 +1,26 @@
 package ar.edu.itba.pod.grpc.models;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 public class CounterRange  {
     private final int start;
     private final int end;
     private List<Counter> counters;
-    private final Sector sector;
     private List<Flight> flights;
-    private int queueSize;
 
-    public CounterRange(int start, int end, Sector sector, List<Counter> counters, List<Flight> flights) {
+    private Airline airline;
+    private int totalCounters;
+    private Queue<Booking> passengers;
+
+    public CounterRange(int start, int end, List<Counter> counters, List<Flight> flights, Airline airline, int totalCounters, Queue<Booking> passengers) {
         this.start = start;
         this.end = end;
-        this.sector = sector;
         this.flights = flights;
         this.counters = counters;
-        this.queueSize = 0;
+        this.airline = airline;
+        this.totalCounters = totalCounters;
+        this.passengers = passengers;
     }
 
     public void setFlights(List<Flight> flights) {
@@ -36,21 +39,9 @@ public class CounterRange  {
         return end;
     }
 
-    public int getQueueSize(){
-        return queueSize;
-    }
-
     public synchronized void addCounter(Counter counter) {
         counters.add(counter);
     }
-
-    private synchronized void passengerStarted() {
-        queueSize++;
-    }
-    private synchronized void passengerFinished() {
-        queueSize--;
-    }
-
 
 
 }

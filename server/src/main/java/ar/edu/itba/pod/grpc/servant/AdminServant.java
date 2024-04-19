@@ -5,7 +5,6 @@ import ar.edu.itba.pod.grpc.models.*;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
 import io.grpc.stub.StreamObserver;
-import org.checkerframework.checker.units.qual.A;
 
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
@@ -34,7 +33,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
                 Flight flight = new Flight(airline, passengerRequest.getFlight());
                 Booking booking = new Booking(flight, passengerRequest.getBooking());
 
-                Passenger passenger = new Passenger(booking, PassengerStatus.PENDING);
+                Passenger passenger = new Passenger(booking, Status.PENDING);
                 try {
                     airport.addExpectedPassenger(passenger);
                     responseObserver.onNext(PassengerResponse.newBuilder().setSuccess(true).build());
