@@ -3,7 +3,7 @@ package ar.edu.itba.pod.grpc.repository.interfaces;
 public interface AirportRepository {
     public void addSector(String name);
 
-    public void addCounterToSector(String sectorName, int number);
+    public void addCountersToSector(String sectorName, int count);
 
     public void addRangeToSector(String sectorName, int start, int end);
 
