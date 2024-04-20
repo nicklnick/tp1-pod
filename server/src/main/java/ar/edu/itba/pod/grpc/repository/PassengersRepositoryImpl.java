@@ -40,4 +40,8 @@ public class PassengersRepositoryImpl implements PassengerRepository {
         expectedPassengers.put(newBooking, newFlight);
         passengers.put(newBooking, Status.PENDING);
     }
+
+    public Map<Booking, Flight> getExpectedPassengers() {
+        return expectedPassengers;
+    }
 }

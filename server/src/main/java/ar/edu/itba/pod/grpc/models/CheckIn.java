@@ -4,6 +4,7 @@ public class CheckIn {
 
     private final Sector sector;
     private final Counter counter;
+    private final Flight flight;
     private final Airline airline;
     private final Booking booking;
 
@@ -12,6 +13,7 @@ public class CheckIn {
         this.counter = counter;
         this.airline = airline;
         this.booking = booking;
+        this.flight = flight;
     }
 
     public Sector getSector() {
@@ -28,6 +30,10 @@ public class CheckIn {
 
     public Booking getBooking() {
         return booking;
+    }
+
+    public Flight getFlight() {
+        return flight;
     }
 
     @Override

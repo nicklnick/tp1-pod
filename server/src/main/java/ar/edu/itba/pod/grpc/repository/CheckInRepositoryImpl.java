@@ -1,6 +1,6 @@
 package ar.edu.itba.pod.grpc.repository;
 
-import ar.edu.itba.pod.grpc.models.CounterRange;
+import ar.edu.itba.pod.grpc.models.AssignedRange;
 import ar.edu.itba.pod.grpc.models.Flight;
 import ar.edu.itba.pod.grpc.repository.interfaces.CheckInRepository;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 public class CheckInRepositoryImpl implements CheckInRepository {
 
     private static CheckInRepositoryImpl instance;
-    private Map<Flight, CounterRange> availableRangeForCheckIn;
+    private Map<Flight, AssignedRange> availableRangeForCheckIn;
 
 
 

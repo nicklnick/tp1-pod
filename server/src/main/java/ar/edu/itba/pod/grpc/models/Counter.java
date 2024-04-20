@@ -6,8 +6,8 @@ import java.util.List;
 public class Counter implements Comparable<Counter> {
 
     private final int number;
-
     private Status status;
+
 
     public Counter(int number, Status status) {
         this.number = number;

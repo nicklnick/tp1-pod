@@ -11,8 +11,8 @@ public class HistoryRepositoryImpl implements HistoryRepository {
 
     private static HistoryRepositoryImpl instance;
 
-    private final Map<Sector, CheckIn> history;
-    private final Map<Airline,CheckIn> history2;
+    private final Map<Sector, CheckIn> sectorCheckInHistory;
+    private final Map<Airline,CheckIn> airlineCheckInHistory;
 
     private HistoryRepositoryImpl() {
         throw new AssertionError("No se puede instanciar esta clase");
@@ -23,6 +23,17 @@ public class HistoryRepositoryImpl implements HistoryRepository {
             instance = new HistoryRepositoryImpl();
         }
         return instance;
+    }
+
+    public synchronized void addCheckIn(Sector sector, CheckIn checkIn) {
+        if(sectorCheckInHistory.containsKey(sector)) {
+            throw new IllegalArgumentException("Ya existe un check-in para el sector indicado");
+        }
+        sectorCheckInHistory.put(sector, checkIn);
+    }
+
+    public synchronized Map<Airline, CheckIn> getAirlineCheckInHistory() {
+        return airlineCheckInHistory;
     }
 
 

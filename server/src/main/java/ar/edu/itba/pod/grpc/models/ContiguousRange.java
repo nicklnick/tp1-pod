@@ -3,23 +3,19 @@ package ar.edu.itba.pod.grpc.models;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FreeRange {
-
-    private final int start;
-
-    private final int end;
+public class ContiguousRange extends Range{
 
     private int occupiedCounters;
     private final List<Counter> counters = new ArrayList<>();
 
-    public FreeRange(int start, int end) {
-        this.start = start;
-        this.end = end;
+
+    public ContiguousRange(int start, int end) {
+        super(start, end);
         this.occupiedCounters = 0;
     }
 
     public synchronized void occupy(int amount) {
-        if(occupiedCounters + amount > end - start) {
+        if(occupiedCounters + amount > getEnd() - getStart()) {
             throw new IllegalArgumentException("Not enough space");
         }
         occupiedCounters += amount;
@@ -39,12 +35,7 @@ public class FreeRange {
         this.counters.add(counter);
     }
 
-    public int getStart() {
-        return start;
-    }
-    public int getEnd() {
-        return end;
-    }
+
     public int getOccupied() {
         return occupiedCounters;
     }
