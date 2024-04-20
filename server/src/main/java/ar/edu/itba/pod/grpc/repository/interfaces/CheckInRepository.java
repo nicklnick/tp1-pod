@@ -2,6 +2,6 @@ package ar.edu.itba.pod.grpc.repository.interfaces;
 
 public interface CheckInRepository {
 
-    public void addCounterRangeToFlight(String flight, String sectorName, int start, int end);
 
+    void counterCheckIn(String sectorName, int rangeId, String airlineName);
 }

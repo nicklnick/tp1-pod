@@ -1,9 +1,6 @@
 package ar.edu.itba.pod.grpc.repository;
 
-import ar.edu.itba.pod.grpc.models.Airline;
-import ar.edu.itba.pod.grpc.models.Booking;
-import ar.edu.itba.pod.grpc.models.Flight;
-import ar.edu.itba.pod.grpc.models.Status;
+import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 
 import java.util.Map;
@@ -12,7 +9,7 @@ public class PassengersRepositoryImpl implements PassengerRepository {
 
     private static PassengersRepositoryImpl instance;
     private Map<Booking, Flight> expectedPassengers;
-    private Map<Booking, Status> passengers;
+    private Map<Booking, PassengerStatus> passengerStatus;
 
     private PassengersRepositoryImpl() {
         throw new AssertionError("No se puede instanciar esta clase");
@@ -38,10 +35,15 @@ public class PassengersRepositoryImpl implements PassengerRepository {
         }
 
         expectedPassengers.put(newBooking, newFlight);
-        passengers.put(newBooking, Status.PENDING);
+        passengerStatus.put(newBooking, PassengerStatus.NOT_CHECKED_IN);
     }
-
+    @Override
     public Map<Booking, Flight> getExpectedPassengers() {
         return expectedPassengers;
     }
+    @Override
+    public Map<Booking, PassengerStatus> getPassengerStatus() {
+        return passengerStatus;
+    }
+
 }

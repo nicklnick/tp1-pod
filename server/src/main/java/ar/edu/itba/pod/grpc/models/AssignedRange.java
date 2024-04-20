@@ -38,6 +38,10 @@ public class AssignedRange extends Range {
         return passengers.size();
     }
 
+    public Queue<Booking> getPassengers () {
+        return passengers;
+    }
+
 
     public Airline getAirline() {
         return airline;
@@ -48,8 +52,4 @@ public class AssignedRange extends Range {
     public List<Counter> getCounters() {
         return counters;
     }
-
-
-
-
 }

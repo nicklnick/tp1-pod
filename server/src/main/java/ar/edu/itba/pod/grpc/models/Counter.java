@@ -1,24 +1,21 @@
 package ar.edu.itba.pod.grpc.models;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Counter implements Comparable<Counter> {
 
     private final int number;
-    private Status status;
+    private CounterStatus status;
 
 
-    public Counter(int number, Status status) {
+    public Counter(int number, CounterStatus status) {
         this.number = number;
         this.status = status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(CounterStatus status) {
         this.status = status;
     }
 
-    public Status getStatus() {
+    public CounterStatus getStatus() {
         return status;
     }
     public int getNumber() {

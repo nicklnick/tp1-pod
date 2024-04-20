@@ -1,9 +1,7 @@
 package ar.edu.itba.pod.grpc.models;
 
-public enum Status {
+public enum CounterStatus {
     PENDING,
-
     READY,
-    ONGOING,
-    FINISHED
+    BUSY
 }

@@ -53,7 +53,7 @@ public class AirportRepositoryImpl implements AirportRepository {
         Sector sector = new Sector(sectorName);
 
         // ---- casos de error ----
-        if(!countersBySector.containsKey(sector)) {
+        if(!containsSector(sector)) {
             throw new IllegalArgumentException("No existe un sector con el nombre indicado");
         }
         if(count < 0) {
@@ -90,7 +90,7 @@ public class AirportRepositoryImpl implements AirportRepository {
         for(int i = 0 ; i < trueCount ; i++) {
 
             // agrego los nuevos mostradores a todas las colecciones necesarias
-            Counter counterToAdd = new Counter(counterId, Status.PENDING);
+            Counter counterToAdd = new Counter(counterId, CounterStatus.PENDING);
             contiguousRange.add(counterToAdd);
             totalCounters.add(counterToAdd);
             countersBySector.get(sector).add(counterToAdd);
@@ -119,8 +119,8 @@ public class AirportRepositoryImpl implements AirportRepository {
         Sector sector = new Sector(sectorName);
         Airline airline = new Airline(airlineName);
 
-        // ---- comienzo casos de error ----
-        if(!countersBySector.containsKey(sector)) {
+        // ---- casos de error ----
+        if(!containsSector(sector)) {
             throw new IllegalArgumentException();
         }
         List<Flight> flights = new ArrayList<>();
@@ -185,7 +185,7 @@ public class AirportRepositoryImpl implements AirportRepository {
                 // checkeo la lista de contadores de cada rango contiguo que tenga espacio suficiente en su totalidad
                 for(Counter counter : range.getCounters()) {
                     // Si el mostrador esta pending significa que esta libre para ser asignado
-                    if(counter.getStatus() == Status.PENDING) {
+                    if(counter.getStatus() == CounterStatus.PENDING) {
                         countersToAdd.add(counter);
                         counterCount++;
                     }
@@ -200,7 +200,7 @@ public class AirportRepositoryImpl implements AirportRepository {
                 }
                 // si la cantidad de contadores a agregar es igual a la cantidad de contadores necesarios, se cambia el estado de los contadores y se agrega el rango asignado
                 if(countersToAdd.size() == count) {
-                    countersToAdd.forEach(counter -> counter.setStatus(Status.READY));
+                    countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY));
                     finishSetupOfAssignedRange( count, airline, countersToAdd, sector, flights);
                     range.occupy(count);
                     return;
@@ -216,5 +216,54 @@ public class AirportRepositoryImpl implements AirportRepository {
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
         onGoingAirlineRange.get(sector).add(assignedRange);
+    }
+
+    @Override
+    public void freeAssignedRange(String sectorName, int rangeId, String airlineName) {
+        Sector sector = new Sector(sectorName);
+
+        // ---- casos de error ----
+        if(!containsSector(sector)) {
+            throw new IllegalArgumentException("No existe un sector con el nombre indicado");
+        }
+        // ---- fin de casos de error ----
+
+        Airline airline = new Airline(airlineName);
+        Optional<AssignedRange> rangeToFree = searchAssignedRangeForAirline(onGoingAirlineRange.get(sector), rangeId, airline);
+        if(rangeToFree.isPresent()) {
+            rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING));
+            onGoingAirlineRange.get(sector).remove(rangeToFree.get());
+            for (ContiguousRange contiguousRange : ranges.get(sector)) {
+                if (contiguousRange.getStart() <= rangeId && contiguousRange.getEnd() >= rangeId) {
+                    contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
+                }
+            }
+        }
+        else {
+            throw new IllegalArgumentException("No se encontró un rango asignado al que pertenezca el numero de rango indicado");
+        }
+    }
+
+    @Override
+    public synchronized Queue<AssignedRange> getpendingAirlineRange(String sectorName) {
+        Sector sector = new Sector(sectorName);
+        if(!containsSector(sector)) {
+            throw new IllegalArgumentException("No existe un sector con el nombre indicado");
+        }
+        return pendingAirlineRange.get(sector);
+    }
+
+    @Override
+    public Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline) {
+        for(AssignedRange assignedRange : assignedRanges) {
+            if(assignedRange.getStart() <= rangeId && assignedRange.getEnd() >= rangeId && airline.equals(assignedRange.getAirline())) {
+                return Optional.of(assignedRange);
+            }
+        }
+        return Optional.empty();
+    }
+    @Override
+    public boolean containsSector(Sector sector) {
+        return countersBySector.containsKey(sector);
     }
 }
