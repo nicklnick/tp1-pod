@@ -81,7 +81,7 @@ public class CheckInServiceImpl implements CheckInService {
         Flight flight = passengerService.listExpectedPassengers().get(booking);
         if(passengerService.passengerDidCheckIn(booking)) {
             //deberia devolver esto, pero deberia llamarse desde el servant
-            historyService.getAirlineCheckInHistory().get(flight.getAirline());
+            historyService.getAirlineCheckInHistory(Optional.empty()).get(flight.getAirline());
         }
 
         Map<Sector, List<AssignedRange>> onGoingAirlineRange = sectorService.getOnGoingAirlineRange();

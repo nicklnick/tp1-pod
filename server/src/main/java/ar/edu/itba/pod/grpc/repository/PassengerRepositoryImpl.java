@@ -32,12 +32,12 @@ public class PassengerRepositoryImpl implements PassengerRepository {
 
     @Override
     public Map<Booking, Flight> listExpectedPassengers() {
-        return expectedPassengers;
+        return Map.copyOf(expectedPassengers);
     }
 
     @Override
     public Map<Booking, PassengerStatus> listPassengerStatus() {
-        return passengerStatus;
+        return Map.copyOf(passengerStatus);
     }
 
     @Override

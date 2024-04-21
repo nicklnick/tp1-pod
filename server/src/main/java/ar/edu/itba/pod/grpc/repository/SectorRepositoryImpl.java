@@ -39,7 +39,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     @Override
     public synchronized Map<Sector, List<Counter>> listSectors() {
-        return countersBySector;
+        return Map.copyOf(countersBySector);
     }
 
     @Override
@@ -86,12 +86,12 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     @Override
     public Map<Sector, List<ContiguousRange>> getContiguousRanges() {
-        return ranges;
+        return Map.copyOf(ranges);
     }
 
     @Override
     public Map<Sector, List<AssignedRange>> getOnGoingAirlineRange() {
-        return onGoingAirlineRange;
+        return Map.copyOf(onGoingAirlineRange);
     }
 
     @Override
@@ -220,7 +220,90 @@ public class SectorRepositoryImpl implements SectorRepository {
         return Optional.empty();
     }
 
-    // crea el rango asignado a la aerolinea y lo agrega a la colección a la que pertenece
+    @Override
+    public Map<Sector, List<AssignedRange>> listCounters() {
+        final Map<Sector, List<AssignedRange>> result = new HashMap<>();
+        // Recorro los sectores y agrego los rangos asignados a la aerolinea
+        for(Sector sector : onGoingAirlineRange.keySet()) {
+            result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
+        }
+
+        // Recorro los sectores y agrego los counters no asignados
+        for(Sector sector : countersBySector.keySet()) {
+            final List<Counter> unassignedCounters = new LinkedList<>();
+            for(Counter counter : countersBySector.get(sector)) {
+                if(counter.getStatus() == CounterStatus.PENDING) {
+                    unassignedCounters.add(counter);
+                }
+            }
+
+            if(!unassignedCounters.isEmpty()) {
+                final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
+                result.put(sector, unassignedRanges);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<Sector, List<AssignedRange>> listCounters(Sector sector) {
+        final Map<Sector, List<AssignedRange>> result = new HashMap<>();
+        result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
+
+        final List<Counter> unassignedCounters = new LinkedList<>();
+        for(Counter counter : countersBySector.get(sector)) {
+            if(counter.getStatus() == CounterStatus.PENDING) {
+                unassignedCounters.add(counter);
+            }
+        }
+
+        if(!unassignedCounters.isEmpty()) {
+            final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
+            result.put(sector, unassignedRanges);
+        }
+
+        return result;
+    }
+
+    // Given a Counter list, it returns a list of Ranges
+    // Eg. [1, 2, 3, 5, 6, 7, 8] -> [1-3, 5-8]
+    private List<AssignedRange> obtainRanges(List<Counter> countersToAdd) {
+        final List<AssignedRange> result = new LinkedList<>();
+
+        for(int i = 0; i < countersToAdd.size(); i++) {
+
+            final int start = countersToAdd.get(i).getNumber();
+
+            while(i < countersToAdd.size() - 1 && countersToAdd.get(i).getNumber() + 1 == countersToAdd.get(i + 1).getNumber()) {
+                i++;
+            }
+            if(i == countersToAdd.size() - 1) {
+                final int end = countersToAdd.get(i).getNumber();
+                final AssignedRange assignedRange = new AssignedRange(start, end, null, end - start + 1);
+                result.add(assignedRange);
+
+                break;
+            }
+
+            int end = countersToAdd.get(i).getNumber();
+
+            final AssignedRange assignedRange = new AssignedRange(start, end, null, end - start + 1);
+            result.add(assignedRange);
+        }
+
+        return result;
+    }
+
+    private AssignedRange getAssignedRange(int rangeId, Sector sector) {
+        for (AssignedRange assignedRange : onGoingAirlineRange.get(sector)) {
+            if (assignedRange.getStart() <= rangeId && assignedRange.getEnd() >= rangeId) {
+                return assignedRange;
+            }
+        }
+        return null;
+    }
+
     private void finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
         final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), airline, count);
         assignedRange.getCounters().addAll(countersToAdd);

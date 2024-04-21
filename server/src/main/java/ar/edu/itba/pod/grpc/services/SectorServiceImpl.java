@@ -81,6 +81,14 @@ public class SectorServiceImpl implements SectorService {
     }
 
     @Override
+    public Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector) {
+        if (sector.isEmpty())
+            return sectorRepo.listCounters();
+
+        return sectorRepo.listCounters(sector.get());
+    }
+
+    @Override
     public boolean containsSector(Sector sector) {
         return sectorRepo.containsSector(sector);
     }

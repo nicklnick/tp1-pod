@@ -6,13 +6,15 @@ public class CheckIn {
     private final Flight flight;
     private final Airline airline;
     private final Booking booking;
+    private final Range range;
 
-    public CheckIn(Sector sector, Counter counter, Airline airline, Flight flight, Booking booking) {
+    public CheckIn(Sector sector, Counter counter, Airline airline, Flight flight, Booking booking, Range range) {
         this.sector = sector;
         this.counter = counter;
         this.airline = airline;
         this.booking = booking;
         this.flight = flight;
+        this.range = range;
     }
 
     @Override
@@ -43,4 +45,7 @@ public class CheckIn {
         return flight;
     }
 
+    public Range getRange() {
+        return range;
+    }
 }
