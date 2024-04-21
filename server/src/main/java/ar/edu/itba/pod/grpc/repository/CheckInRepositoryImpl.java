@@ -1,9 +1,7 @@
 package ar.edu.itba.pod.grpc.repository;
 
 import ar.edu.itba.pod.grpc.models.*;
-import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
 import ar.edu.itba.pod.grpc.repository.interfaces.CheckInRepository;
-import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
@@ -49,4 +47,11 @@ public class CheckInRepositoryImpl implements CheckInRepository {
             }
         }
     }
+
+    @Override
+    public AssignedRange getAvailableRangeForCheckIn(Booking booking) {
+        final Flight flight = passengerService.listExpectedPassengers().get(booking);
+        return availableRangeForCheckIn.get(flight);
+    }
+
 }

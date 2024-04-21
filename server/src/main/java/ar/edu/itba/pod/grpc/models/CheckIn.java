@@ -20,7 +20,7 @@ public class CheckIn {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CheckIn checkIn = (CheckIn) o;
-        return sector.equals(checkIn.sector) && counter.equals(checkIn.counter) && airline.equals(checkIn.airline) && booking.equals(checkIn.booking);
+        return booking.equals(checkIn.booking);
     }
 
     public Sector getSector() {

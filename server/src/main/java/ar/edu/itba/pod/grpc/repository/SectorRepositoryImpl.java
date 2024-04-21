@@ -10,7 +10,6 @@ import java.util.*;
 public class SectorRepositoryImpl implements SectorRepository {
 
     private static SectorRepositoryImpl instance;
-
     private final PassengerService passengerService = new PassengerServiceImpl();
 
     private final List<Counter> totalCounters = new ArrayList<>();
@@ -163,13 +162,12 @@ public class SectorRepositoryImpl implements SectorRepository {
         }
         // chequeo si la aerolinea ya tiene un check-in iniciado
         // TODO: sacar el repo y poner el service cuando esté hecho
-        Map<Airline, CheckIn> airlineCheckIns = HistoryRepositoryImpl.getInstance().getAirlineCheckInHistory();
-        for (CheckIn checkIn : airlineCheckIns.values()) {
-            if (checkIn.getAirline().equals(airline)) {
-                for (Flight flight : flights) {
-                    if (checkIn.getFlight().equals(flight)) {
-                        throw new IllegalArgumentException("No se puede iniciar el check-in de un vuelo dos o mas veces");
-                    }
+        // TODO: revisarlo
+        Map<Airline, List<CheckIn>> airlineCheckIns = HistoryRepositoryImpl.getInstance().getAirlineCheckInHistory();
+        for (CheckIn checkIn : airlineCheckIns.get(airline)) {
+            for (Flight flight : flights) {
+                if (checkIn.getFlight().equals(flight)) {
+                    throw new IllegalArgumentException("No se puede iniciar el check-in de un vuelo dos o mas veces");
                 }
             }
         }

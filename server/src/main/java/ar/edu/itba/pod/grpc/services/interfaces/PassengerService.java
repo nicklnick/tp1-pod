@@ -14,4 +14,8 @@ public interface PassengerService {
     Map<Booking, PassengerStatus> listPassengerStatus();
 
     void changePassengerStatus(Booking booking, PassengerStatus status);
+
+    boolean containsPassengerWithBooking(Booking booking);
+
+    boolean passengerDidCheckIn(Booking booking);
 }

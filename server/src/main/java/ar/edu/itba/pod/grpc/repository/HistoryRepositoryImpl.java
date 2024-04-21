@@ -5,15 +5,17 @@ import ar.edu.itba.pod.grpc.models.CheckIn;
 import ar.edu.itba.pod.grpc.models.Sector;
 import ar.edu.itba.pod.grpc.repository.interfaces.HistoryRepository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HistoryRepositoryImpl implements HistoryRepository {
 
     private static HistoryRepositoryImpl instance;
 
-    private final Map<Sector, CheckIn> sectorCheckInHistory = new HashMap<>();
-    private final Map<Airline, CheckIn> airlineCheckInHistory = new HashMap<>();
+    private final Map<Sector, List<CheckIn>> sectorCheckInHistory = new HashMap<>();
+    private final Map<Airline, List<CheckIn>> airlineCheckInHistory = new HashMap<>();
 
     private HistoryRepositoryImpl() {
     }
@@ -27,12 +29,19 @@ public class HistoryRepositoryImpl implements HistoryRepository {
 
     @Override
     public synchronized void addCheckIn(Sector sector, CheckIn checkIn) {
-        sectorCheckInHistory.put(sector, checkIn);
+        sectorCheckInHistory.putIfAbsent(sector, new ArrayList<>());
+        airlineCheckInHistory.putIfAbsent(checkIn.getAirline(), new ArrayList<>());
+        sectorCheckInHistory.get(sector).add(checkIn);
+        airlineCheckInHistory.get(checkIn.getAirline()).add(checkIn);
     }
 
     @Override
-    public synchronized Map<Airline, CheckIn> getAirlineCheckInHistory() {
+    public synchronized Map<Airline, List<CheckIn>> getAirlineCheckInHistory() {
         return airlineCheckInHistory;
+    }
+    @Override
+    public synchronized Map<Sector, List<CheckIn>> getSectorCheckInHistory() {
+        return sectorCheckInHistory;
     }
 
     @Override
