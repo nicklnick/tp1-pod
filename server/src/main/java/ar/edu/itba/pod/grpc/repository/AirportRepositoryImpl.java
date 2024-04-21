@@ -22,7 +22,6 @@ public class AirportRepositoryImpl implements AirportRepository {
 
 
     private AirportRepositoryImpl() {
-        throw new AssertionError("No se puede instanciar esta clase");
     }
 
     public synchronized static AirportRepositoryImpl getInstance() {
@@ -49,7 +48,7 @@ public class AirportRepositoryImpl implements AirportRepository {
     }
 
     @Override
-    public synchronized void addCountersToSector(String sectorName, int count) {
+    public synchronized ContiguousRange addCountersToSector(String sectorName, int count) {
         Sector sector = new Sector(sectorName);
 
         // ---- casos de error ----
@@ -67,14 +66,14 @@ public class AirportRepositoryImpl implements AirportRepository {
         List<Counter> currentCounters = null;
 
         // caso en que ya existe un rango contiguo en el sector y el último mostrador es el anterior al que quiero quiere agregar -> los fusiono
-        if(ranges.containsKey(sector)) {
-            ContiguousRange oldRange = ranges.get(sector).getLast();
+        if(ranges.containsKey(sector) && !ranges.get(sector).isEmpty()) {
+            ContiguousRange oldRange = ranges.get(sector).get(ranges.get(sector).size() - 1);
             // es el ultimo actual el anterior al que voy a agregar?
             if(oldRange.getEnd() == counterId - 1) {
-                occupiedCounters = ranges.get(sector).getLast().getOccupied();
-                currentCounters = ranges.get(sector).getLast().getCounters();
+                occupiedCounters = oldRange.getOccupied();
+                currentCounters = oldRange.getCounters();
                 // saco ese último rango para después fusionarlo con el nuevo
-                ranges.get(sector).removeLast();
+                ranges.get(sector).remove(oldRange);
                 newCounterId = oldRange.getStart();
                 count += oldRange.getEnd() - oldRange.getStart() + 1;
             }
@@ -84,9 +83,9 @@ public class AirportRepositoryImpl implements AirportRepository {
         ContiguousRange contiguousRange = new ContiguousRange(newCounterId, newCounterId + count - 1);
         contiguousRange.occupy(occupiedCounters);
         contiguousRange.addAll(currentCounters);
+        ranges.get(sector).add(contiguousRange);
 
         //agrego el rango contiguo a la colección necesaria
-        ranges.get(sector).add(contiguousRange);
         for(int i = 0 ; i < trueCount ; i++) {
 
             // agrego los nuevos mostradores a todas las colecciones necesarias
@@ -94,9 +93,9 @@ public class AirportRepositoryImpl implements AirportRepository {
             contiguousRange.add(counterToAdd);
             totalCounters.add(counterToAdd);
             countersBySector.get(sector).add(counterToAdd);
-            ranges.get(sector).getLast().add(counterToAdd);
             counterId++;
         }
+        return contiguousRange;
     }
 
     @Override
@@ -110,7 +109,7 @@ public class AirportRepositoryImpl implements AirportRepository {
     }
 
     @Override
-    public Map<Sector, List<AssignedRange>> getSectorsCounterRange() {
+    public Map<Sector, List<AssignedRange>> getOnGoingAirlineRange() {
         return onGoingAirlineRange;
     }
 
@@ -129,7 +128,7 @@ public class AirportRepositoryImpl implements AirportRepository {
             flights.add(flight);
         }
         boolean hasExpectedPassengers = false;
-        Map<Booking, Flight> expectedPassengers = PassengersRepositoryImpl.getInstance().getExpectedPassengers();
+        Map<Booking, Flight> expectedPassengers = PassengerRepositoryImpl.getInstance().getExpectedPassengers();
         for(Booking booking : expectedPassengers.keySet()) {
             if(flights.contains(expectedPassengers.get(booking))) {
                 flights.remove(expectedPassengers.get(booking));
@@ -212,7 +211,7 @@ public class AirportRepositoryImpl implements AirportRepository {
 
     // crea el rango asignado a la aerolinea y lo agrega a la colección a la que pertenece
     private void finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
-        AssignedRange assignedRange = new AssignedRange(countersToAdd.getFirst().getNumber(), countersToAdd.getLast().getNumber() , airline, count);
+        AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber() , airline, count);
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
         onGoingAirlineRange.get(sector).add(assignedRange);

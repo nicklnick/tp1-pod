@@ -5,19 +5,18 @@ import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 
 import java.util.Map;
 
-public class PassengersRepositoryImpl implements PassengerRepository {
+public class PassengerRepositoryImpl implements PassengerRepository {
 
-    private static PassengersRepositoryImpl instance;
+    private static PassengerRepositoryImpl instance;
     private Map<Booking, Flight> expectedPassengers;
     private Map<Booking, PassengerStatus> passengerStatus;
 
-    private PassengersRepositoryImpl() {
-        throw new AssertionError("No se puede instanciar esta clase");
+    private PassengerRepositoryImpl() {
     }
 
-    public synchronized static PassengersRepositoryImpl getInstance() {
+    public synchronized static PassengerRepositoryImpl getInstance() {
         if(instance == null) {
-            instance = new PassengersRepositoryImpl();
+            instance = new PassengerRepositoryImpl();
         }
         return instance;
     }

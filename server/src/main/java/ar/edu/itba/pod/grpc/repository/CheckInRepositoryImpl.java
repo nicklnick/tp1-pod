@@ -5,19 +5,19 @@ import ar.edu.itba.pod.grpc.repository.interfaces.AirportRepository;
 import ar.edu.itba.pod.grpc.repository.interfaces.CheckInRepository;
 import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class CheckInRepositoryImpl implements CheckInRepository {
 
     private static CheckInRepositoryImpl instance;
-    private final Map<Flight, AssignedRange> availableRangeForCheckIn;
+    private final Map<Flight, AssignedRange> availableRangeForCheckIn = new HashMap<>();
     private final AirportRepository airportRepository = AirportRepositoryImpl.getInstance();
-    private final PassengerRepository passengerRepository = PassengersRepositoryImpl.getInstance();
+    private final PassengerRepository passengerRepository = PassengerRepositoryImpl.getInstance();
 
 
     private CheckInRepositoryImpl() {
-        throw new AssertionError("No se puede instanciar esta clase");
     }
     public synchronized static CheckInRepositoryImpl getInstance() {
         if(instance == null) {
@@ -35,7 +35,7 @@ public class CheckInRepositoryImpl implements CheckInRepository {
         if(!airportRepository.containsSector(sector)) {
             throw new IllegalArgumentException("No existe un sector con el nombre indicado");
         }
-        maybeAssignedRange = airportRepository.searchAssignedRangeForAirline(airportRepository.getSectorsCounterRange().get(sector), rangeId, airline);
+        maybeAssignedRange = airportRepository.searchAssignedRangeForAirline(airportRepository.getOnGoingAirlineRange().get(sector), rangeId, airline);
         if(maybeAssignedRange.isEmpty()) {
             throw new IllegalArgumentException("No se encontró un rango asignado al que pertenezca el numero de rango indicado o no pertenece a la aerolinea indicada");
         }
