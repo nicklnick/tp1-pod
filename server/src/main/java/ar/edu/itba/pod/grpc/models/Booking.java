@@ -2,20 +2,12 @@ package ar.edu.itba.pod.grpc.models;
 
 import java.util.Objects;
 
-
-// para mi no tiene que existir
 public class Booking implements Comparable<Booking> {
+
     private final String code;
 
     public Booking(String code) {
-
         this.code = code;
-    }
-
-
-
-    public String getCode() {
-        return code;
     }
 
     @Override
@@ -34,5 +26,9 @@ public class Booking implements Comparable<Booking> {
     @Override
     public int hashCode() {
         return Objects.hash(code);
+    }
+
+    public String getCode() {
+        return code;
     }
 }

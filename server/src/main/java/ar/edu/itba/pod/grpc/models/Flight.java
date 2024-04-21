@@ -12,14 +12,6 @@ public class Flight {
         this.code = code;
     }
 
-    public Airline getAirline() {
-        return airline;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -31,5 +23,13 @@ public class Flight {
     @Override
     public int hashCode() {
         return Objects.hash(airline, code);
+    }
+
+    public Airline getAirline() {
+        return airline;
+    }
+
+    public String getCode() {
+        return code;
     }
 }

@@ -25,30 +25,35 @@ public class AssignedRange extends Range {
     public void addFlight(Flight flight) {
         this.flights.add(flight);
     }
+
     public void addCounter(Counter counter) {
         counters.add(counter);
     }
+
     public void addPassenger(Booking booking) {
         passengers.add(booking);
     }
+
     public List<Flight> getFlights() {
         return flights;
     }
+
     public int getQueueSize() {
         return passengers.size();
     }
 
-    public Queue<Booking> getPassengers () {
+    public Queue<Booking> getPassengers() {
         return passengers;
     }
-
 
     public Airline getAirline() {
         return airline;
     }
+
     public int getTotalCounters() {
         return totalCounters;
     }
+
     public List<Counter> getCounters() {
         return counters;
     }

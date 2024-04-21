@@ -11,16 +11,18 @@ public class Counter implements Comparable<Counter> {
         this.status = status;
     }
 
+    public CounterStatus getStatus() {
+        return status;
+    }
+
     public void setStatus(CounterStatus status) {
         this.status = status;
     }
 
-    public CounterStatus getStatus() {
-        return status;
-    }
     public int getNumber() {
         return number;
     }
+
     @Override
     public int compareTo(Counter o) {
         return Integer.compare(this.number, o.number);

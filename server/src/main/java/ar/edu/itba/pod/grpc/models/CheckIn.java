@@ -1,7 +1,6 @@
 package ar.edu.itba.pod.grpc.models;
 
 public class CheckIn {
-
     private final Sector sector;
     private final Counter counter;
     private final Flight flight;
@@ -14,6 +13,14 @@ public class CheckIn {
         this.airline = airline;
         this.booking = booking;
         this.flight = flight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CheckIn checkIn = (CheckIn) o;
+        return sector.equals(checkIn.sector) && counter.equals(checkIn.counter) && airline.equals(checkIn.airline) && booking.equals(checkIn.booking);
     }
 
     public Sector getSector() {
@@ -36,11 +43,4 @@ public class CheckIn {
         return flight;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CheckIn checkIn = (CheckIn) o;
-        return sector.equals(checkIn.sector) && counter.equals(checkIn.counter) && airline.equals(checkIn.airline) && booking.equals(checkIn.booking);
-    }
 }

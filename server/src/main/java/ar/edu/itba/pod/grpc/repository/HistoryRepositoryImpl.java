@@ -5,36 +5,38 @@ import ar.edu.itba.pod.grpc.models.CheckIn;
 import ar.edu.itba.pod.grpc.models.Sector;
 import ar.edu.itba.pod.grpc.repository.interfaces.HistoryRepository;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HistoryRepositoryImpl implements HistoryRepository {
 
     private static HistoryRepositoryImpl instance;
 
-    private final Map<Sector, CheckIn> sectorCheckInHistory;
-    private final Map<Airline,CheckIn> airlineCheckInHistory;
+    private final Map<Sector, CheckIn> sectorCheckInHistory = new HashMap<>();
+    private final Map<Airline, CheckIn> airlineCheckInHistory = new HashMap<>();
 
     private HistoryRepositoryImpl() {
-        throw new AssertionError("No se puede instanciar esta clase");
     }
 
     public synchronized static HistoryRepositoryImpl getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new HistoryRepositoryImpl();
         }
         return instance;
     }
 
+    @Override
     public synchronized void addCheckIn(Sector sector, CheckIn checkIn) {
-        if(sectorCheckInHistory.containsKey(sector)) {
-            throw new IllegalArgumentException("Ya existe un check-in para el sector indicado");
-        }
         sectorCheckInHistory.put(sector, checkIn);
     }
 
+    @Override
     public synchronized Map<Airline, CheckIn> getAirlineCheckInHistory() {
         return airlineCheckInHistory;
     }
 
-
+    @Override
+    public boolean containsCheckInForSector(Sector sector) {
+        return sectorCheckInHistory.containsKey(sector);
+    }
 }

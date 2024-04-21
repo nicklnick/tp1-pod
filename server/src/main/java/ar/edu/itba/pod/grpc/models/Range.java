@@ -12,6 +12,7 @@ public abstract class Range {
     public int getStart() {
         return start;
     }
+
     public int getEnd() {
         return end;
     }

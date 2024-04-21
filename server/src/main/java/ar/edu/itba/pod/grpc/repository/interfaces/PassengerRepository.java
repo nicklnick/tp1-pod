@@ -8,9 +8,15 @@ import java.util.Map;
 
 public interface PassengerRepository {
 
-    public void addExpectedPassenger(String booking, String flight, String airline);
+    void addExpectedPassenger(Booking booking, Flight flight);
 
-    Map<Booking, Flight> getExpectedPassengers();
+    Map<Booking, Flight> listExpectedPassengers();
 
-    Map<Booking, PassengerStatus> getPassengerStatus();
+    Map<Booking, PassengerStatus> listPassengerStatus();
+
+    boolean containsPassengerWithBooking(Booking booking);
+
+    boolean containsPassengerWithFlight(Flight flight);
+
+    void changePassengerStatus(Booking booking, PassengerStatus status);
 }

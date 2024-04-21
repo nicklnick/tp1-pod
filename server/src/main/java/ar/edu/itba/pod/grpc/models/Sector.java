@@ -10,10 +10,6 @@ public class Sector implements Comparable<Sector> {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
     @Override
     public int compareTo(Sector o) {
         return this.name.compareTo(o.name);
@@ -30,5 +26,9 @@ public class Sector implements Comparable<Sector> {
         if (o == null || getClass() != o.getClass()) return false;
         Sector sector = (Sector) o;
         return name.equals(sector.name);
+    }
+
+    public String getName() {
+        return name;
     }
 }

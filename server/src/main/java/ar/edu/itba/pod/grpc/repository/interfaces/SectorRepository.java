@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.grpc.services.interfaces;
+package ar.edu.itba.pod.grpc.repository.interfaces;
 
 import ar.edu.itba.pod.grpc.models.*;
 
@@ -7,10 +7,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 
-public interface SectorService {
-    void addSector(String name);
+public interface SectorRepository {
+    void addSector(Sector sector);
 
     Map<Sector, List<Counter>> listSectors();
+
+    boolean containsSector(Sector sector);
 
     ContiguousRange addCountersToSector(Sector sector, int count);
 
@@ -22,9 +24,7 @@ public interface SectorService {
 
     void freeAssignedRange(Sector sector, Airline airline, int rangeId);
 
-    void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flight, int count);
+    void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count);
 
     Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline);
-
-    boolean containsSector(Sector sector);
 }
