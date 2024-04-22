@@ -24,7 +24,11 @@ public class SectorServiceImpl implements SectorService {
 
     @Override
     public Map<Sector, List<Counter>> listSectors() {
-        return sectorRepo.listSectors();
+        final Map<Sector, List<Counter>> result = sectorRepo.listSectors();
+        if(result.isEmpty())
+            throw new IllegalStateException("No sectors found");
+
+        return result;
     }
 
     @Override
@@ -39,7 +43,11 @@ public class SectorServiceImpl implements SectorService {
 
     @Override
     public Map<Sector, List<ContiguousRange>> getContiguousRanges() {
-        return sectorRepo.getContiguousRanges();
+        final Map<Sector, List<ContiguousRange>> result = sectorRepo.getContiguousRanges();
+        if(result.isEmpty())
+            throw new IllegalStateException("No sectors found");
+
+        return result;
     }
 
     @Override

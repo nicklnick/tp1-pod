@@ -23,7 +23,7 @@ message CounterRequest {
   Range counter_range = 2;
 }
 
-message Counter {
+message CounterMsg {
   Range counter_range = 1;
   string airline = 2;
   repeated string flights = 3;
@@ -31,14 +31,14 @@ message Counter {
 }
 
 message CounterResponse {
-  repeated Counter counters = 1;
+  repeated CounterMsg counters = 1;
 }
 
 message SectorResponse {
-  repeated Sector sectors = 1;
+  repeated SectorMsg sectors = 1;
 }
 
-message Sector {
+message SectorMsg {
   string name = 1;
   repeated Range counter_ranges = 2;
 }
