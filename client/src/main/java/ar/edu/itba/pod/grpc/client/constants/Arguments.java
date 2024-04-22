@@ -8,6 +8,8 @@ public class Arguments {
 
     public static final String SERVER_ADDRESS = "serverAddress";
     public static final String ACTION = "action";
+
     public static final String SECTOR = "sector";
+    public static final String COUNTERS = "counters";
 
 }

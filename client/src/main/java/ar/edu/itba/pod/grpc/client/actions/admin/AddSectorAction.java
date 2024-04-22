@@ -1,10 +1,12 @@
-package ar.edu.itba.pod.grpc.client.actions;
+package ar.edu.itba.pod.grpc.client.actions.admin;
 
 import ar.edu.itba.pod.grpc.admin.AdminServiceGrpc;
+import ar.edu.itba.pod.grpc.client.actions.Action;
 import ar.edu.itba.pod.grpc.client.constants.Arguments;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +30,7 @@ public class AddSectorAction extends Action {
     }
 
     @Override
-    public void execute(ManagedChannel channel) throws InterruptedException {
+    public void execute(ManagedChannel channel) throws InterruptedException, IllegalArgumentException {
         final AdminServiceGrpc.AdminServiceBlockingStub stub = AdminServiceGrpc.newBlockingStub(channel);
 
         try {
@@ -38,16 +40,19 @@ public class AddSectorAction extends Action {
             final Empty ignored = stub.addSector(request);
 
             System.out.println(buildOuputMessage(sectorName));
-        } catch (Exception e) {
-            // TODO: Handle error and make status user exception
-            System.out.println(e.getMessage());
+        } catch (StatusRuntimeException e) {
+            throw new IllegalArgumentException(USAGE_MESSAGE);
         } finally {
             channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
         }
     }
 
     @Override
-    public String buildOuputMessage(String... arguments) {
-        return String.format("Sector %s added successfully", arguments[0]);
+    public boolean hasValidArguments() {
+        return super.hasValidArguments() && System.getProperty(Arguments.SECTOR) != null;
+    }
+
+    private String buildOuputMessage(String sectorName) {
+        return String.format("Sector %s added successfully", sectorName);
     }
 }

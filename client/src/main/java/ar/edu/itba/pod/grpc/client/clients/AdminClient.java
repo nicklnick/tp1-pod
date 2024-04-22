@@ -1,11 +1,12 @@
 package ar.edu.itba.pod.grpc.client.clients;
 
 import ar.edu.itba.pod.grpc.client.actions.Action;
-import ar.edu.itba.pod.grpc.client.actions.AdminActions;
+import ar.edu.itba.pod.grpc.client.actions.admin.AdminActions;
 import ar.edu.itba.pod.grpc.client.constants.Arguments;
 import ar.edu.itba.pod.grpc.client.constants.ErrorMessages;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class AdminClient extends Client {
     private static final String USAGE_MSG = """
@@ -21,10 +22,11 @@ public class AdminClient extends Client {
             client.run();
         } catch (IllegalArgumentException e) {
             System.out.println(ErrorMessages.INVALID_ARGUMENTS);
-            System.out.println(USAGE_MSG);
+            System.out.println(Optional.ofNullable(e.getMessage()).orElse(USAGE_MSG));
             System.exit(2);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println(ErrorMessages.SERVER_ERROR);
+            System.exit(1);
         }
     }
 

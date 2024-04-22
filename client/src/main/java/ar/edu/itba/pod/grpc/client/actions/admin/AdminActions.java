@@ -1,11 +1,13 @@
-package ar.edu.itba.pod.grpc.client.actions;
+package ar.edu.itba.pod.grpc.client.actions.admin;
 
+import ar.edu.itba.pod.grpc.client.actions.Action;
 import ar.edu.itba.pod.grpc.client.constants.Arguments;
 
 import java.util.List;
 
 public enum AdminActions {
-    ADD_SECTOR("addSector", new AddSectorAction(List.of(Arguments.SECTOR)))
+    ADD_SECTOR("addSector", new AddSectorAction(List.of(Arguments.SECTOR))),
+    ADD_COUNTERS("addCounters", new AddCountersAction(List.of(Arguments.SECTOR, Arguments.COUNTERS)))
     ;
 
 

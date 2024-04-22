@@ -22,6 +22,4 @@ public abstract class Action {
     public abstract String getUsageMessage();
 
     public abstract void execute(ManagedChannel channel) throws InterruptedException;
-
-    public abstract String buildOuputMessage(String ... arguments);
 }

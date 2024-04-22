@@ -4,13 +4,14 @@ import ar.edu.itba.pod.grpc.admin.*;
 import ar.edu.itba.pod.grpc.commons.Range;
 import ar.edu.itba.pod.grpc.models.ContiguousRange;
 import ar.edu.itba.pod.grpc.models.Sector;
-import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
 import ar.edu.itba.pod.grpc.services.SectorServiceImpl;
-import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+
+import java.util.Optional;
 
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
@@ -28,7 +29,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
             responseObserver.onCompleted();
 
         } catch (IllegalArgumentException e) {
-            responseObserver.onError(e);
+            responseObserver.onError(Status.ALREADY_EXISTS.asRuntimeException());
         }
     }
 
@@ -40,13 +41,17 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
         try {
             final ContiguousRange range = sectorService.addCountersToSector(sector, count);
 
-            final Range grpcRange = Range.newBuilder().setFrom(range.getStart()).setFrom(range.getEnd()).build();
-            final CounterResponse grpcResponse = CounterResponse.newBuilder().setCounterRange(grpcRange).build();
+            int from = range.getStart();
+            // if we join the ranges, we have to adjust the from value
+            if(count != (range.getEnd() - range.getStart() + 1))
+                from = range.getStart() + count;
+            final Range responseRange = Range.newBuilder().setFrom(from).setTo(range.getEnd()).build();
+            final CounterResponse response = CounterResponse.newBuilder().setCounterRange(responseRange).build();
 
-            responseObserver.onNext(grpcResponse);
+            responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (IllegalArgumentException e) {
-            responseObserver.onError(e);
+            responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException());
         }
     }
 
