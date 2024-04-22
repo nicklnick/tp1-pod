@@ -3,23 +3,17 @@ package ar.edu.itba.pod.grpc.client;
 import ar.edu.itba.pod.grpc.admin.AdminServiceGrpc;
 import ar.edu.itba.pod.grpc.admin.PassengerRequest;
 import ar.edu.itba.pod.grpc.admin.PassengerResponse;
-import ar.edu.itba.pod.grpc.counter.SectorResponse;
-import com.google.protobuf.Empty;
-import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class Client {
-    private static Logger logger = LoggerFactory.getLogger(Client.class);
+public class ExampleClient {
+    private static Logger logger = LoggerFactory.getLogger(ExampleClient.class);
 
     public static void main(String[] args) throws InterruptedException {
         logger.info("tp1-pod Client Starting ...");
