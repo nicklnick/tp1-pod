@@ -39,7 +39,7 @@ public class AddSectorAction extends Action {
 
             final Empty ignored = stub.addSector(request);
 
-            System.out.println(buildOuputMessage(sectorName));
+            System.out.println(buildOutputMessage(sectorName));
         } catch (StatusRuntimeException e) {
             throw new IllegalArgumentException(USAGE_MESSAGE);
         } finally {
@@ -52,7 +52,7 @@ public class AddSectorAction extends Action {
         return super.hasValidArguments() && System.getProperty(Arguments.SECTOR) != null;
     }
 
-    private String buildOuputMessage(String sectorName) {
+    private String buildOutputMessage(String sectorName) {
         return String.format("Sector %s added successfully", sectorName);
     }
 }
