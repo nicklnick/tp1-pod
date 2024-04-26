@@ -20,8 +20,8 @@ message PassengerCheckInRequest {
 
 message FetchCounterResponse {
   optional Range counter_range = 1;
-  string sector = 2;
-  int32 people = 3;
+  optional string sector = 2;
+  optional int32 people = 3;
   string airline = 4;
   string flight = 5;
 }
@@ -35,12 +35,13 @@ message PassengerCheckinResponse {
 }
 
 message PassengerStatusResponse {
-  Range counter_range = 1;
-  string sector = 2;
-  string airline = 3;
-  optional int32 people = 4;
-  string flight = 5;
-  PassengerCheckInStatus status = 6;
+  optional Range counter_range = 1;
+  optional int32 counter = 2;
+  string sector = 3;
+  string airline = 4;
+  optional int32 people = 5;
+  string flight = 6;
+  PassengerCheckInStatus status = 7;
 }
 
 enum PassengerCheckInStatus {

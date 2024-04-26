@@ -2,7 +2,9 @@ package ar.edu.itba.pod.grpc.repository;
 
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
+import ar.edu.itba.pod.grpc.services.CheckInServiceImpl;
 import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
+import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
 import java.util.*;
@@ -11,6 +13,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     private static SectorRepositoryImpl instance;
     private final PassengerService passengerService = new PassengerServiceImpl();
+    private final CheckInService checkInService = new CheckInServiceImpl();
 
     private final List<Counter> totalCounters = new ArrayList<>();
     private final Map<Sector, List<Counter>> countersBySector = new HashMap<>();
@@ -308,6 +311,9 @@ public class SectorRepositoryImpl implements SectorRepository {
         final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), sector, airline, count);
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
+        for(Flight flight : flights) {
+            checkInService.addAvailableRangeForFlight(flight, assignedRange);
+        }
         onGoingAirlineRange.get(sector).add(assignedRange);
     }
 }

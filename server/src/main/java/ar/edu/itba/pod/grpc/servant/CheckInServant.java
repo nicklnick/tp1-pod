@@ -19,19 +19,29 @@ public class CheckInServant extends CheckInServiceGrpc.CheckInServiceImplBase {
     public void fetchCounter(StringValue request, StreamObserver<FetchCounterResponse> responseObserver) {
         Booking booking = passengerService.getPassengerBooking(request.getValue());
         Flight flight = passengerService.listExpectedPassengers().get(booking);
+        // puede ser null si no existe un rango con el vuelo
         AssignedRange assignedRange = checkInService.getAvailableRangeForCheckIn(booking);
         try {
-            final FetchCounterResponse response = FetchCounterResponse.newBuilder()
-                    .setCounterRange(
-                            Range.newBuilder()
-                                    .setFrom(assignedRange.getStart())
-                                    .setTo(assignedRange.getEnd())
-                                    .build())
-                    .setSector(assignedRange.getSector().getName())
-                    .setPeople(assignedRange.getQueueSize())
-                    .setAirline(assignedRange.getAirline().getName())
-                    .setFlight(flight.getCode())
-                    .build();
+            final FetchCounterResponse response;
+            if(assignedRange == null) {
+                response = FetchCounterResponse.newBuilder()
+                        .setAirline(flight.getAirline().getName())
+                        .setFlight(flight.getCode())
+                        .build();
+            }
+            else {
+                response = FetchCounterResponse.newBuilder()
+                        .setCounterRange(
+                                Range.newBuilder()
+                                        .setFrom(assignedRange.getStart())
+                                        .setTo(assignedRange.getEnd())
+                                        .build())
+                        .setSector(assignedRange.getSector().getName())
+                        .setPeople(assignedRange.getQueueSize())
+                        .setAirline(assignedRange.getAirline().getName())
+                        .setFlight(flight.getCode())
+                        .build();
+            }
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (IllegalArgumentException e) {

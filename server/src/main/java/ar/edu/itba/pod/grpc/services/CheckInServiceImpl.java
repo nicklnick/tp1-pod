@@ -64,11 +64,13 @@ public class CheckInServiceImpl implements CheckInService {
         }
         AssignedRange assignedRange = maybeAssignedRange.get();
         if(assignedRange.getPassengers().contains(booking)) {
-            throw new IllegalArgumentException("Elpasajero ya ingresó en la cola del rango");
+            throw new IllegalArgumentException("El pasajero ya ingresó en la cola del rango");
         } else if (passengerService.passengerDidCheckIn(booking)) {
             throw new IllegalArgumentException("El pasajero ya realizó el check-in de la reserva");
         }
+        //entra a la fila
         assignedRange.getPassengers().add(booking);
+        passengerService.changePassengerStatus(booking, PassengerStatus.ONGOING_CHECKIN);
         return assignedRange;
     }
 
@@ -94,5 +96,10 @@ public class CheckInServiceImpl implements CheckInService {
             }
         }
         return getAvailableRangeForCheckIn(booking);
+    }
+
+    @Override
+    public void addAvailableRangeForFlight(Flight flight, AssignedRange assignedRange) {
+        checkInRepository.addAvailableRangeForFlight(flight, assignedRange);
     }
 }

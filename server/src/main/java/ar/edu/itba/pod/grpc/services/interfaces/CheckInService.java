@@ -1,9 +1,6 @@
 package ar.edu.itba.pod.grpc.services.interfaces;
 
-import ar.edu.itba.pod.grpc.models.Airline;
-import ar.edu.itba.pod.grpc.models.AssignedRange;
-import ar.edu.itba.pod.grpc.models.Booking;
-import ar.edu.itba.pod.grpc.models.Sector;
+import ar.edu.itba.pod.grpc.models.*;
 
 public interface CheckInService {
     void counterCheckIn(Sector sector, int rangeId, Airline airline);
@@ -13,4 +10,6 @@ public interface CheckInService {
     AssignedRange placePassengerInAssignedRangeQueue(Booking booking, Sector sector, int rangeId);
 
     AssignedRange getPassengerCheckInStatus(Booking booking);
+
+    void addAvailableRangeForFlight(Flight flight, AssignedRange assignedRange);
 }

@@ -12,4 +12,7 @@ public class Arguments {
     public static final String SECTOR = "sector";
     public static final String COUNTERS = "counters";
 
+    public static final String BOOKING = "booking";
+    public static final String COUNTER = "counter";
+
 }

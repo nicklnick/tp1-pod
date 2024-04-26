@@ -31,17 +31,15 @@ public class CheckInRepositoryImpl implements CheckInRepository {
     public void counterCheckIn(AssignedRange assignedRange) {
         // busco mostrador vacio
         for (Counter counter : assignedRange.getCounters()) {
-            if (counter.getStatus() == CounterStatus.READY) {
+            if (counter.getStatus() == CounterStatus.READY_FOR_CHECKIN) {
                 // TODO: arreglar, el synchronized va a agarrar instancias distintas de la misma cosa
                 synchronized (counter) {
                     // si encuentro, cambio su estado a ocupado
                     counter.setStatus(CounterStatus.BUSY);
 
                     final Booking passenger = assignedRange.getPassengers().poll();
-                    passengerService.changePassengerStatus(passenger, PassengerStatus.ONGOING);
-
-                    counter.setStatus(CounterStatus.READY); // TODO: creo que vamos a tener problemas porque esto es un puntero distinto al posta no?
-                    passengerService.changePassengerStatus(passenger, PassengerStatus.FINISHED);
+                    passengerService.changePassengerStatus(passenger, PassengerStatus.FINISHED_CHECKIN);
+                    counter.setStatus(CounterStatus.READY_FOR_CHECKIN); // TODO: creo que vamos a tener problemas porque esto es un puntero distinto al posta no?
                     return;
                 }
             }
@@ -52,6 +50,11 @@ public class CheckInRepositoryImpl implements CheckInRepository {
     public AssignedRange getAvailableRangeForCheckIn(Booking booking) {
         final Flight flight = passengerService.listExpectedPassengers().get(booking);
         return availableRangeForCheckIn.get(flight);
+    }
+
+    @Override
+    public void addAvailableRangeForFlight(Flight flight, AssignedRange assignedRange) {
+        availableRangeForCheckIn.put(flight, assignedRange);
     }
 
 }
