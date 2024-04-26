@@ -67,14 +67,14 @@ public class SectorRepositoryImpl implements SectorRepository {
         }
 
         // create the new range
-        final ContiguousRange contiguousRange = new ContiguousRange(newCounterId, newCounterId + count - 1);
+        final ContiguousRange contiguousRange = new ContiguousRange(newCounterId, newCounterId + count - 1, sector);
         contiguousRange.occupy(occupiedCounters);
         contiguousRange.addAll(currentCounters);
         ranges.get(sector).add(contiguousRange);
 
         // add the new counters
         for (int i = 0; i < trueCount; i++) {
-            Counter counterToAdd = new Counter(counterId, CounterStatus.PENDING);
+            Counter counterToAdd = new Counter(counterId, CounterStatus.PENDING_ASSIGNATION);
             contiguousRange.add(counterToAdd);
             totalCounters.add(counterToAdd);
             countersBySector.get(sector).add(counterToAdd);
@@ -105,7 +105,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         if(rangeToFree.isEmpty())
             throw new IllegalArgumentException("No se encontro el rango asignado para la aerolinea indicada");
 
-        rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING));
+        rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
         onGoingAirlineRange.get(sector).remove(rangeToFree.get());
         for (ContiguousRange contiguousRange : ranges.get(sector)) {
             if (contiguousRange.getStart() <= rangeId && contiguousRange.getEnd() >= rangeId) {
@@ -184,7 +184,7 @@ public class SectorRepositoryImpl implements SectorRepository {
                 // checkeo la lista de contadores de cada rango contiguo que tenga espacio suficiente en su totalidad
                 for (Counter counter : range.getCounters()) {
                     // Si el mostrador esta pending significa que esta libre para ser asignado
-                    if (counter.getStatus() == CounterStatus.PENDING) {
+                    if (counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
                         countersToAdd.add(counter);
                         counterCount++;
                     }
@@ -199,7 +199,7 @@ public class SectorRepositoryImpl implements SectorRepository {
                 }
                 // si la cantidad de contadores a agregar es igual a la cantidad de contadores necesarios, se cambia el estado de los contadores y se agrega el rango asignado
                 if (countersToAdd.size() == count) {
-                    countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY));
+                    countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY_FOR_CHECKIN));
                     finishSetupOfAssignedRange(count, airline, countersToAdd, sector, flights);
                     range.occupy(count);
                     return;
@@ -232,7 +232,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         for(Sector sector : countersBySector.keySet()) {
             final List<Counter> unassignedCounters = new LinkedList<>();
             for(Counter counter : countersBySector.get(sector)) {
-                if(counter.getStatus() == CounterStatus.PENDING) {
+                if(counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
                     unassignedCounters.add(counter);
                 }
             }
@@ -253,7 +253,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
         final List<Counter> unassignedCounters = new LinkedList<>();
         for(Counter counter : countersBySector.get(sector)) {
-            if(counter.getStatus() == CounterStatus.PENDING) {
+            if(counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
                 unassignedCounters.add(counter);
             }
         }
@@ -280,7 +280,7 @@ public class SectorRepositoryImpl implements SectorRepository {
             }
             if(i == countersToAdd.size() - 1) {
                 final int end = countersToAdd.get(i).getNumber();
-                final AssignedRange assignedRange = new AssignedRange(start, end, null, end - start + 1);
+                final AssignedRange assignedRange = new AssignedRange(start, end, null, null,end - start + 1);
                 result.add(assignedRange);
 
                 break;
@@ -288,7 +288,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
             int end = countersToAdd.get(i).getNumber();
 
-            final AssignedRange assignedRange = new AssignedRange(start, end, null, end - start + 1);
+            final AssignedRange assignedRange = new AssignedRange(start, end, null, null, end - start + 1);
             result.add(assignedRange);
         }
 
@@ -305,7 +305,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     private void finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
-        final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), airline, count);
+        final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), sector, airline, count);
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
         onGoingAirlineRange.get(sector).add(assignedRange);

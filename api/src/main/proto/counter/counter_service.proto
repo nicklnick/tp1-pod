@@ -56,11 +56,12 @@ message AssignResponse {
   Range counter_range = 3;
 }
 
-// hacerlo objeto propio de CounterRange
+
 enum AssignmentStatus {
   UNDEFINED = 0;
-  PENDING = 1;
-  CONFIRMED = 2;
+  PENDING_ASSIGNATION = 1;
+  READY_FOR_CHECKING = 2;
+  BUSY = 3;
 }
 
 message FreeCountersRequest {

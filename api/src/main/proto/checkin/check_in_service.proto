@@ -45,7 +45,7 @@ message PassengerStatusResponse {
 
 enum PassengerCheckInStatus {
   UNDEFINED = 0;
-  PENDING = 1;
-  ONGOING = 2;
-  FINISHED = 3;
+  PENDING_CHECKIN = 1;
+  ONGOING_CHECKIN = 2;
+  FINISHED_CHECKIN = 3;
 }

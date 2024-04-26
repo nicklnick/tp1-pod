@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.models;
 
 public enum PassengerStatus {
-    NOT_CHECKED_IN,
-    CHECKED_IN,
+    PENDING_CHECKIN,
+    ONGOING_CHECKIN,
+    FINISHED_CHECKIN
 }

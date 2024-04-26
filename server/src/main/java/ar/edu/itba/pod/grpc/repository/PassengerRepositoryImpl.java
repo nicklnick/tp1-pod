@@ -27,7 +27,7 @@ public class PassengerRepositoryImpl implements PassengerRepository {
     @Override
     public synchronized void addExpectedPassenger(Booking booking, Flight flight) {
         expectedPassengers.put(booking, flight);
-        passengerStatus.put(booking, PassengerStatus.NOT_CHECKED_IN);
+        passengerStatus.put(booking, PassengerStatus.PENDING_CHECKIN);
     }
 
     @Override
@@ -53,5 +53,10 @@ public class PassengerRepositoryImpl implements PassengerRepository {
     @Override
     public void changePassengerStatus(Booking booking, PassengerStatus status) {
         passengerStatus.put(booking, status);
+    }
+
+    @Override
+    public Booking getPassengerBooking(Booking booking) {
+        return expectedPassengers.keySet().stream().filter(b -> b.equals(booking)).findFirst().orElse(null);
     }
 }

@@ -38,10 +38,10 @@ public class CheckInRepositoryImpl implements CheckInRepository {
                     counter.setStatus(CounterStatus.BUSY);
 
                     final Booking passenger = assignedRange.getPassengers().poll();
-                    passengerService.changePassengerStatus(passenger, PassengerStatus.CHECKED_IN);
+                    passengerService.changePassengerStatus(passenger, PassengerStatus.ONGOING);
 
                     counter.setStatus(CounterStatus.READY); // TODO: creo que vamos a tener problemas porque esto es un puntero distinto al posta no?
-
+                    passengerService.changePassengerStatus(passenger, PassengerStatus.FINISHED);
                     return;
                 }
             }

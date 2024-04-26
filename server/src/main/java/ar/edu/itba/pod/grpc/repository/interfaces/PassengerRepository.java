@@ -14,6 +14,8 @@ public interface PassengerRepository {
 
     Map<Booking, PassengerStatus> listPassengerStatus();
 
+    Booking getPassengerBooking(Booking booking);
+
     boolean containsPassengerWithBooking(Booking booking);
 
     boolean containsPassengerWithFlight(Flight flight);

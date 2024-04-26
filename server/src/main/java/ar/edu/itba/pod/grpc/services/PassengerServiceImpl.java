@@ -47,6 +47,12 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public boolean passengerDidCheckIn(Booking booking) {
-        return passengerRepo.listPassengerStatus().get(booking) == PassengerStatus.CHECKED_IN;
+        return passengerRepo.listPassengerStatus().get(booking) == PassengerStatus.FINISHED;
+    }
+
+    @Override
+    public Booking getPassengerBooking(String bookingId) {
+        Booking booking = new Booking(bookingId);
+        return passengerRepo.getPassengerBooking(booking);
     }
 }

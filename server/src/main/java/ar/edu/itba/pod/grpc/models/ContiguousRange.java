@@ -8,8 +8,8 @@ public class ContiguousRange extends Range {
     private final List<Counter> counters = new ArrayList<>();
     private int occupiedCounters;
 
-    public ContiguousRange(int start, int end) {
-        super(start, end);
+    public ContiguousRange(int start, int end, Sector sector) {
+        super(start, end, sector);
         this.occupiedCounters = 0;
     }
 

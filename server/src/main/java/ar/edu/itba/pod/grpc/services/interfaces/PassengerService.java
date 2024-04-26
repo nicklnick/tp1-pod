@@ -18,4 +18,6 @@ public interface PassengerService {
     boolean containsPassengerWithBooking(Booking booking);
 
     boolean passengerDidCheckIn(Booking booking);
+
+    Booking getPassengerBooking(String bookingId);
 }

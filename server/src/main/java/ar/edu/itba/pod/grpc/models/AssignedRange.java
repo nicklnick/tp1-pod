@@ -13,8 +13,8 @@ public class AssignedRange extends Range {
     private final Queue<Booking> passengers;
 
 
-    public AssignedRange(int start, int end, Airline airline, int totalCounters) {
-        super(start, end);
+    public AssignedRange(int start, int end, Sector sector, Airline airline, int totalCounters) {
+        super(start, end, sector);
         this.airline = airline;
         this.totalCounters = totalCounters;
         this.flights = new ArrayList<>();
