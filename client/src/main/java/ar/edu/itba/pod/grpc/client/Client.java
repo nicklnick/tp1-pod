@@ -62,12 +62,7 @@ public class Client {
             };
 
             final StreamObserver<PassengerRequest> request = stub.addExpectedPassenger(response);
-            request.onNext(PassengerRequest.newBuilder()
-                    .setBooking("ABC123")
-                    .setFlight("AC987")
-                    .setAirline("AirCanada")
-                    .build()
-            );
+
             request.onCompleted();
             PassengerResponse passengerResponse = passenger.get();
             logger.info(passengerResponse.toString());
