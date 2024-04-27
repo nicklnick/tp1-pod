@@ -6,12 +6,9 @@ import ar.edu.itba.pod.grpc.admin.PassengerResponse;
 import ar.edu.itba.pod.grpc.client.actions.Action;
 import ar.edu.itba.pod.grpc.client.constants.Arguments;
 import ar.edu.itba.pod.grpc.client.utils.files.CsvFileReader;
-import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 public class ManifestAction extends Action {
 
