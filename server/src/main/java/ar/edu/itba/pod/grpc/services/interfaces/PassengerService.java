@@ -7,7 +7,7 @@ import ar.edu.itba.pod.grpc.models.PassengerStatus;
 import java.util.Map;
 
 public interface PassengerService {
-    void addExpectedPassenger(Booking booking, Flight flight);
+    void addExpectedPassenger(Booking booking, Flight flight) throws IllegalArgumentException;
 
     Map<Booking, Flight> listExpectedPassengers();
 

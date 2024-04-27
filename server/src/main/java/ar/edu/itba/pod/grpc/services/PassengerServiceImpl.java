@@ -13,7 +13,7 @@ public class PassengerServiceImpl implements PassengerService {
     private static final PassengerRepository passengerRepo  = PassengerRepositoryImpl.getInstance();
 
     @Override
-    public void addExpectedPassenger(Booking booking, Flight flight) {
+    public void addExpectedPassenger(Booking booking, Flight flight) throws IllegalArgumentException {
         if(passengerRepo.containsPassengerWithBooking(booking))
             throw new IllegalArgumentException("Passenger with given booking already exists");
         else if (passengerRepo.containsPassengerWithFlight(flight))

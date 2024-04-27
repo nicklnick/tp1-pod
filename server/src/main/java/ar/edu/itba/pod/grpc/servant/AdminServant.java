@@ -2,20 +2,20 @@ package ar.edu.itba.pod.grpc.servant;
 
 import ar.edu.itba.pod.grpc.admin.*;
 import ar.edu.itba.pod.grpc.commons.Range;
-import ar.edu.itba.pod.grpc.models.ContiguousRange;
-import ar.edu.itba.pod.grpc.models.Sector;
+import ar.edu.itba.pod.grpc.models.*;
+import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
 import ar.edu.itba.pod.grpc.services.SectorServiceImpl;
+import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-import java.util.Optional;
-
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final SectorService sectorService = new SectorServiceImpl();
+    private final PassengerService passengerService = new PassengerServiceImpl();
 
     @Override
     public void addSector(StringValue request, StreamObserver<Empty> responseObserver) {
@@ -57,6 +57,17 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
     @Override
     public void addExpectedPassenger(PassengerRequest request, StreamObserver<PassengerResponse> responseObserver) {
-        super.addExpectedPassenger(request, responseObserver);
+        final Booking booking = new Booking(request.getBooking());
+        final Airline airline = new Airline(request.getAirline());
+        final Flight flight = new Flight(airline, request.getFlight());
+
+        try {
+            passengerService.addExpectedPassenger(booking, flight);
+            responseObserver.onNext(PassengerResponse.newBuilder().setSuccess(true).build());
+        } catch (IllegalArgumentException e) {
+            responseObserver.onNext(PassengerResponse.newBuilder().setSuccess(false).build());
+        } finally {
+            responseObserver.onCompleted();
+        }
     }
 }
