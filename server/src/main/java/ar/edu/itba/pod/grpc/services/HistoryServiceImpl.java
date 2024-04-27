@@ -1,9 +1,6 @@
 package ar.edu.itba.pod.grpc.services;
 
-import ar.edu.itba.pod.grpc.models.Airline;
-import ar.edu.itba.pod.grpc.models.CheckIn;
-import ar.edu.itba.pod.grpc.models.Counter;
-import ar.edu.itba.pod.grpc.models.Sector;
+import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.HistoryRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.HistoryRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
@@ -17,34 +14,29 @@ public class HistoryServiceImpl implements HistoryService {
 
 
     @Override
-    public void addCheckIn(Sector sector, CheckIn checkIn) {
-        if (historyRepo.containsCheckInForSector(sector))
-            throw new IllegalArgumentException("Check-in already exists for given sector");
+    public void addCheckIn(CheckIn checkIn) {
+        if (historyRepo.passangerDidCheckin(checkIn.getBooking())) {
+            throw new IllegalArgumentException("Passenger already did checkin");
+        }
 
-        historyRepo.addCheckIn(sector, checkIn);
+        historyRepo.addCheckIn(checkIn);
     }
 
     @Override
-    public Map<Sector, List<CheckIn>> getSectorCheckInHistory(Optional<Sector> maybeSector) {
-        if (maybeSector.isEmpty())
-            return historyRepo.getSectorCheckInHistory();
-
-        return historyRepo.getSectorCheckInHistory(maybeSector.get());
+    public List<CheckIn> getSectorCheckInHistory(Optional<Sector> maybeSector) {
+        return maybeSector.map(historyRepo::getSectorCheckInHistory).orElse(null);
+    }
+    @Override
+    public List<CheckIn> getAirlineCheckInHistory(Optional<Airline> maybeAirline) {
+        return maybeAirline.map(historyRepo::getAirlineCheckInHistory).orElse(null);
+    }
+    @Override
+    public List<CheckIn> getCounterCheckInHistory(Optional<Counter> maybeCounter) {
+        return maybeCounter.map(historyRepo::getCounterCheckInHistory).orElse(null);
     }
 
     @Override
-    public Map<Airline, List<CheckIn>> getAirlineCheckInHistory(Optional<Airline> maybeAirline) {
-        if (maybeAirline.isEmpty())
-            return historyRepo.getAirlineCheckInHistory();
-
-        return historyRepo.getAirlineCheckInHistory(maybeAirline.get());
-    }
-
-    @Override
-    public Map<Counter, List<CheckIn>> getCounterCheckInHistory(Optional<Counter> maybeCounter) {
-        if (maybeCounter.isEmpty())
-            return historyRepo.getCounterCheckInHistory();
-
-        return historyRepo.getCounterCheckInHistory(maybeCounter.get());
+    public CheckIn getPassengerCheckIn(Optional<Booking> maybePassenger) {
+        return maybePassenger.map(historyRepo::getPassengerCheckIn).orElse(null);
     }
 }

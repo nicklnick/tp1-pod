@@ -2,7 +2,9 @@ package ar.edu.itba.pod.grpc.repository;
 
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.interfaces.CheckInRepository;
+import ar.edu.itba.pod.grpc.services.HistoryServiceImpl;
 import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
+import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
 import java.util.HashMap;
@@ -11,9 +13,8 @@ import java.util.Map;
 public class CheckInRepositoryImpl implements CheckInRepository {
 
     private static CheckInRepositoryImpl instance;
-
     private final PassengerService passengerService = new PassengerServiceImpl();
-
+    private final HistoryService historyService = new HistoryServiceImpl();
     private final Map<Flight, AssignedRange> availableRangeForCheckIn = new HashMap<>();
 
 
@@ -39,6 +40,9 @@ public class CheckInRepositoryImpl implements CheckInRepository {
 
                     final Booking passenger = assignedRange.getPassengers().poll();
                     passengerService.changePassengerStatus(passenger, PassengerStatus.FINISHED_CHECKIN);
+                    Flight flight = passengerService.listExpectedPassengers().get(passenger);
+                    CheckIn checkIn = new CheckIn(assignedRange.getSector(), counter, assignedRange.getAirline(), flight, passenger, assignedRange);
+                    historyService.addCheckIn(checkIn);
                     counter.setStatus(CounterStatus.READY_FOR_CHECKIN); // TODO: creo que vamos a tener problemas porque esto es un puntero distinto al posta no?
                     return;
                 }

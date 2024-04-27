@@ -81,9 +81,10 @@ public class CheckInServiceImpl implements CheckInService {
             throw new IllegalArgumentException("Not expecting any passengers with given booking");
         }
         Flight flight = passengerService.listExpectedPassengers().get(booking);
+        Optional<Airline> maybeAirline = Optional.of(flight.getAirline());
         if(passengerService.passengerDidCheckIn(booking)) {
             //deberia devolver esto, pero deberia llamarse desde el servant
-            historyService.getAirlineCheckInHistory(Optional.empty()).get(flight.getAirline());
+            return null;
         }
 
         Map<Sector, List<AssignedRange>> onGoingAirlineRange = sectorService.getOnGoingAirlineRange();

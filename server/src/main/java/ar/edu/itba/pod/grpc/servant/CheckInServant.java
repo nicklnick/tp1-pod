@@ -4,16 +4,21 @@ import ar.edu.itba.pod.grpc.checkin.*;
 import ar.edu.itba.pod.grpc.commons.Range;
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.services.CheckInServiceImpl;
+import ar.edu.itba.pod.grpc.services.HistoryServiceImpl;
 import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
 import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
+import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import com.google.protobuf.StringValue;
 import io.grpc.stub.StreamObserver;
+
+import java.util.Optional;
 
 public class CheckInServant extends CheckInServiceGrpc.CheckInServiceImplBase {
 
     private final PassengerService passengerService = new PassengerServiceImpl();
     private final CheckInService checkInService = new CheckInServiceImpl();
+    private final HistoryService historyService = new HistoryServiceImpl();
 
     @Override
     public void fetchCounter(StringValue request, StreamObserver<FetchCounterResponse> responseObserver) {
@@ -83,19 +88,30 @@ public class CheckInServant extends CheckInServiceGrpc.CheckInServiceImplBase {
         PassengerStatus status = passengerService.listPassengerStatus().get(booking);
         try {
             AssignedRange assignedRange = checkInService.getPassengerCheckInStatus(booking);
-            final PassengerStatusResponse response = PassengerStatusResponse.newBuilder()
-                    .setCounterRange(
-                            Range.newBuilder()
-                                    .setFrom(assignedRange.getStart())
-                                    .setTo(assignedRange.getEnd())
-                                    .build())
-                    .setSector(assignedRange.getSector().getName())
-                    .setAirline(assignedRange.getAirline().getName())
-                    .setPeople(assignedRange.getQueueSize())
-                    .setFlight(flight.getCode())
-                    .setStatus(PassengerCheckInStatus.valueOf(status.name()))
-                    .build();
-            responseObserver.onNext(response);
+            final PassengerStatusResponse.Builder response = PassengerStatusResponse.newBuilder();
+            if(assignedRange == null) {
+                Optional<Booking> maybeBooking = Optional.of(booking);
+                CheckIn checkInData = historyService.getPassengerCheckIn(maybeBooking);
+                response
+                        .setCounter(checkInData.getCounter().getNumber())
+                        .setAirline(checkInData.getAirline().getName())
+                        .setFlight(checkInData.getFlight().getCode())
+                        .setStatus(PassengerCheckInStatus.valueOf(status.name()))
+                        ;
+            } else {
+                response.setCounterRange(
+                        Range.newBuilder()
+                                .setFrom(assignedRange.getStart())
+                                .setTo(assignedRange.getEnd())
+                                .build())
+                .setSector(assignedRange.getSector().getName())
+                .setAirline(assignedRange.getAirline().getName())
+                .setPeople(assignedRange.getQueueSize())
+                .setFlight(flight.getCode())
+                .setStatus(PassengerCheckInStatus.valueOf(status.name()))
+                ;
+            }
+            responseObserver.onNext(response.build());
             responseObserver.onCompleted();
         } catch (IllegalArgumentException e) {
             responseObserver.onError(io.grpc.Status.NOT_FOUND.asRuntimeException());
