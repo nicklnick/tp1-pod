@@ -32,6 +32,7 @@ message NotificationsResponse {
   repeated string flights = 5;
   optional int32 people = 6;
   optional int32 pendings_ahead = 7;
+  string airline = 8;
 }
 
 message NotificationsHistoryResponse {
