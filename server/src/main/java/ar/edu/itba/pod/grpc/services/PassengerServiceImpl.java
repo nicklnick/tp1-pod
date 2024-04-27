@@ -15,9 +15,9 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public void addExpectedPassenger(Booking booking, Flight flight) {
         if(passengerRepo.containsPassengerWithBooking(booking))
-            throw new IllegalArgumentException("Ya existe un pasajero con el mismo booking");
+            throw new IllegalArgumentException("Passenger with given booking already exists");
         else if (passengerRepo.containsPassengerWithFlight(flight))
-            throw new IllegalArgumentException("Ya existe un pasajero con el mismo vuelo");
+            throw new IllegalArgumentException("Passenger with given flight already exists");
 
         passengerRepo.addExpectedPassenger(booking, flight);
     }
@@ -35,7 +35,7 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public void changePassengerStatus(Booking booking, PassengerStatus status) {
         if(!passengerRepo.containsPassengerWithBooking(booking))
-            throw new IllegalArgumentException("No existe un pasajero con ese booking");
+            throw new IllegalArgumentException("Passenger with given booking does not exists");
 
         passengerRepo.changePassengerStatus(booking, status);
     }

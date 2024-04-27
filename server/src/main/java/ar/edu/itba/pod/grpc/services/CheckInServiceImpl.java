@@ -42,7 +42,7 @@ public class CheckInServiceImpl implements CheckInService {
     @Override
     public AssignedRange getAvailableRangeForCheckIn(Booking booking) {
         if(!passengerService.containsPassengerWithBooking(booking)) {
-            throw new IllegalArgumentException("No se espera un pasajero con ese booking");
+            throw new IllegalArgumentException("Not expecting any passengers with given booking");
         }
         return checkInRepository.getAvailableRangeForCheckIn(booking);
     }
@@ -51,22 +51,22 @@ public class CheckInServiceImpl implements CheckInService {
     @Override
     public AssignedRange placePassengerInAssignedRangeQueue(Booking booking, Sector sector, int rangeId) {
         if(!passengerService.containsPassengerWithBooking(booking)) {
-            throw new IllegalArgumentException("No se espera un pasajero con ese booking");
+            throw new IllegalArgumentException("Not expecting any passengers with given booking");
         } else if (!sectorService.containsSector(sector)) {
-            throw new IllegalArgumentException("No existe el sector");
+            throw new IllegalArgumentException("Sector does not exist");
         }
         Flight flight = passengerService.listExpectedPassengers().get(booking);
         Optional<AssignedRange> maybeAssignedRange = sectorService.searchAssignedRangeForAirline(
                 sectorService.getOnGoingAirlineRange().get(sector), rangeId, flight.getAirline());
         if(maybeAssignedRange.isEmpty()) {
-            throw new IllegalArgumentException("El número de mostrador no corresponde con el inicio de un rango de mostradores " +
-                    "asignado a la aerolínea que esté aceptando pasajeros del vuelo de la reserva");
+            throw new IllegalArgumentException("Counter number does not correspond to the beginning of a range of counters " +
+                    "assigned to the airline accepting passengers on the given booking flight");
         }
         AssignedRange assignedRange = maybeAssignedRange.get();
         if(assignedRange.getPassengers().contains(booking)) {
-            throw new IllegalArgumentException("El pasajero ya ingresó en la cola del rango");
+            throw new IllegalArgumentException("Passenger already in counter range queue");
         } else if (passengerService.passengerDidCheckIn(booking)) {
-            throw new IllegalArgumentException("El pasajero ya realizó el check-in de la reserva");
+            throw new IllegalArgumentException("Passenger already checked-in for given booking");
         }
         //entra a la fila
         assignedRange.getPassengers().add(booking);
@@ -78,7 +78,7 @@ public class CheckInServiceImpl implements CheckInService {
     @Override
     public AssignedRange getPassengerCheckInStatus(Booking booking) {
         if(!passengerService.containsPassengerWithBooking(booking)) {
-            throw new IllegalArgumentException("No se espera un pasajero con ese booking");
+            throw new IllegalArgumentException("Not expecting any passengers with given booking");
         }
         Flight flight = passengerService.listExpectedPassengers().get(booking);
         if(passengerService.passengerDidCheckIn(booking)) {

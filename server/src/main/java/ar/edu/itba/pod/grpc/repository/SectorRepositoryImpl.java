@@ -106,7 +106,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     public void freeAssignedRange(Sector sector, Airline airline, int rangeId) {
         final Optional<AssignedRange> rangeToFree = searchAssignedRangeForAirline(onGoingAirlineRange.get(sector), rangeId, airline);
         if(rangeToFree.isEmpty())
-            throw new IllegalArgumentException("No se encontro el rango asignado para la aerolinea indicada");
+            throw new IllegalArgumentException("Assigned range not found for given airline");
 
         rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
         onGoingAirlineRange.get(sector).remove(rangeToFree.get());
@@ -130,7 +130,7 @@ public class SectorRepositoryImpl implements SectorRepository {
                 flights.remove(expectedPassengers.get(booking));
                 hasExpectedPassengers = true;
                 if (!expectedPassengers.get(booking).getAirline().equals(airline)) {
-                    throw new IllegalArgumentException("El vuelo no pertenece a la aerolinea indicada");
+                    throw new IllegalArgumentException("Flight does not belong to given airline");
                 }
                 continue;
             }
@@ -139,7 +139,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
         // si no hay pasajeros esperados para al menos uno de los vuelos indicados, se lanza una excepción
         if (!hasExpectedPassengers) {
-            throw new IllegalArgumentException("No se encontraron pasajeros esperados para al menos uno de los vuelos indicados");
+            throw new IllegalArgumentException("Not expecting any passengers for any of the given flights");
         }
 
         // chequeo si la aerolinea ya tiene un rango asignado o pendiente
@@ -147,7 +147,7 @@ public class SectorRepositoryImpl implements SectorRepository {
             if (assignedRange.getAirline().equals(airline)) {
                 for (Flight flight : flights) {
                     if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Ya existe un rango asignado para al menos uno de los vuelos indicados");
+                        throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
                     }
                 }
             }
@@ -158,7 +158,7 @@ public class SectorRepositoryImpl implements SectorRepository {
             if (assignedRange.getAirline().equals(airline)) {
                 for (Flight flight : flights) {
                     if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Ya existe un rango pendiente para al menos uno de los vuelos indicados");
+                        throw new IllegalArgumentException("Pending range assignment already existing for at least one of the given flights");
                     }
                 }
             }
@@ -170,7 +170,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         for (CheckIn checkIn : airlineCheckIns.get(airline)) {
             for (Flight flight : flights) {
                 if (checkIn.getFlight().equals(flight)) {
-                    throw new IllegalArgumentException("No se puede iniciar el check-in de un vuelo dos o mas veces");
+                    throw new IllegalArgumentException("Flight check-in can't start more than once");
                 }
             }
         }

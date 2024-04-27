@@ -19,7 +19,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     public void addCheckIn(Sector sector, CheckIn checkIn) {
         if (historyRepo.containsCheckInForSector(sector))
-            throw new IllegalArgumentException("Ya existe un check-in para el sector indicado");
+            throw new IllegalArgumentException("Check-in already exists for given sector");
 
         historyRepo.addCheckIn(sector, checkIn);
     }
