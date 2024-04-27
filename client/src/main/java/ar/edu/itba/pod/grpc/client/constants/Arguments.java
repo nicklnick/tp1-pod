@@ -16,4 +16,10 @@ public class Arguments {
     public static final String BOOKING = "booking";
     public static final String COUNTER = "counter";
 
+    public static final String COUNTER_FROM = "counterFrom";
+    public static final String COUNTER_TO = "counterTo";
+
+    public static final String FLIGHTS = "flights";
+    public static final String COUNTER_COUNT = "counterCount";
+
 }

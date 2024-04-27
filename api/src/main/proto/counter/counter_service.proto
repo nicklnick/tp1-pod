@@ -13,9 +13,9 @@ service CounterService {
   rpc ListSectors(google.protobuf.Empty) returns (SectorResponse);
   rpc ListCounters(CounterRequest) returns (CounterResponse);
   rpc AssignCounters(AssignRequest) returns (AssignResponse);
-  rpc FreeCounters(FreeCountersRequest) returns (RepeatedFreeCountersResponse);
-  rpc CheckInCounters(CheckInRequest) returns (CheckInResponse);
-  rpc ListPendingAssignments(google.protobuf.StringValue) returns (RepeatedFreeCountersResponse);
+  rpc FreeCounters(FreeCountersRequest) returns (FreeCountersResponse);
+  rpc CheckInCounters(CheckInRequest) returns (RepeatedCheckInResponse);
+  rpc ListPendingAssignments(google.protobuf.StringValue) returns (RepeatedPendingAssignmentResponse);
 }
 
 message CounterRequest {
@@ -70,10 +70,6 @@ message FreeCountersRequest {
   string airline = 3;
 }
 
-message RepeatedFreeCountersResponse {
-  repeated FreeCountersResponse freed_counters = 1;
-}
-
 message FreeCountersResponse {
   repeated string flights = 1;
   int32 counter_qty = 2;
@@ -84,6 +80,10 @@ message CheckInRequest {
   int32 counter_from = 1;
   string sector_name = 2;
   string airline = 3;
+}
+
+message RepeatedCheckInResponse {
+  repeated CheckInResponse check_in_responses = 1;
 }
 
 // If both booking and flight are not present, then counter is idle

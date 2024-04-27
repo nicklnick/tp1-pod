@@ -62,17 +62,18 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     }
 
     @Override
-    public void freeCounters(FreeCountersRequest request, StreamObserver<RepeatedFreeCountersResponse> responseObserver) {
+    public void freeCounters(FreeCountersRequest request, StreamObserver<FreeCountersResponse> responseObserver) {
+
 
     }
 
     @Override
-    public void checkInCounters(CheckInRequest request, StreamObserver<CheckInResponse> responseObserver) {
+    public void checkInCounters(CheckInRequest request, StreamObserver<RepeatedCheckInResponse> responseObserver) {
         super.checkInCounters(request, responseObserver);
     }
 
     @Override
-    public void listPendingAssignments(StringValue request, StreamObserver<RepeatedFreeCountersResponse> responseObserver) {
+    public void listPendingAssignments(StringValue request, StreamObserver<RepeatedPendingAssignmentResponse> responseObserver) {
         super.listPendingAssignments(request, responseObserver);
     }
 }
