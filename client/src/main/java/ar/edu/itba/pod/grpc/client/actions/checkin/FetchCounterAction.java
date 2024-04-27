@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class FetchCounterAction extends Action {
-    private static final String USAGE_MESSSAGE = """
+    private static final String USAGE_MESSAGE = """
             Usage:
                 $> sh passengerClient.sh\s
                 -DserverAddress=xx.xx.xx.xx:yyyy\s
@@ -30,7 +30,7 @@ public class FetchCounterAction extends Action {
 
     @Override
     public String getUsageMessage() {
-        return USAGE_MESSSAGE;
+        return USAGE_MESSAGE;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class FetchCounterAction extends Action {
                 );
             }
         } catch (Exception e) {
-            throw new IllegalArgumentException(USAGE_MESSSAGE);
+            throw new IllegalArgumentException(USAGE_MESSAGE);
         } finally {
             channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
         }
