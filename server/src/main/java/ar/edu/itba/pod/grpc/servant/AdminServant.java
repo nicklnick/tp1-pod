@@ -56,22 +56,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     @Override
-    public StreamObserver<PassengerRequest> addExpectedPassenger(StreamObserver<PassengerResponse> responseObserver) {
-        return new StreamObserver<>() {
-            @Override
-            public void onNext(PassengerRequest passengerRequest) {
-                // todo
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                responseObserver.onError(throwable);
-            }
-
-            @Override
-            public void onCompleted() {
-                responseObserver.onCompleted();
-            }
-        };
+    public void addExpectedPassenger(PassengerRequest request, StreamObserver<PassengerResponse> responseObserver) {
+        super.addExpectedPassenger(request, responseObserver);
     }
 }

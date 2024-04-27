@@ -15,6 +15,7 @@ public class Arguments {
 
     public static final String BOOKING = "booking";
     public static final String COUNTER = "counter";
+    public static final String IN_PATH = "inPath";
 
     public static final String COUNTER_FROM = "counterFrom";
     public static final String COUNTER_TO = "counterTo";
