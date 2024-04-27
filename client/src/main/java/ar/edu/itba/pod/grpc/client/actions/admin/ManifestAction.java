@@ -44,19 +44,20 @@ public class ManifestAction extends Action {
                     .setAirline(row[2])
                     .build();
 
-            System.out.println(request);
-
-//            final PassengerResponse response = stub.addExpectedPassenger(request);
-//
-//            if (response.getSuccess()) {
-//                final String message = buildOutputMessage(request);
-//                System.out.println(message);
-//            }
+            final PassengerResponse response = stub.addExpectedPassenger(request);
+            final String message = buildOutputMessage(request, response);
+            System.out.println(message);
         });
     }
 
-    private String buildOutputMessage(PassengerRequest request) {
-        return String.format("Booking %s for %s %s added successfully",
+    private String buildOutputMessage(PassengerRequest request, PassengerResponse response) {
+        if (response.getSuccess())
+            return String.format("Booking %s for %s %s added successfully",
+                    request.getBooking(),
+                    request.getAirline(),
+                    request.getFlight());
+
+        return String.format("Cannot add %s for %s %s",
                 request.getBooking(),
                 request.getAirline(),
                 request.getFlight());
