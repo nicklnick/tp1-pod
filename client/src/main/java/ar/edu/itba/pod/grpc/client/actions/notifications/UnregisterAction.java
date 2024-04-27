@@ -1,16 +1,13 @@
 package ar.edu.itba.pod.grpc.client.actions.notifications;
 
-import ar.edu.itba.pod.grpc.admin.AdminServiceGrpc;
 import ar.edu.itba.pod.grpc.client.actions.Action;
 import ar.edu.itba.pod.grpc.client.constants.Arguments;
-import ar.edu.itba.pod.grpc.notifications.NotificationsResponse;
 import ar.edu.itba.pod.grpc.notifications.NotificationsServiceGrpc;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
