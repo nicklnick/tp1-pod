@@ -65,13 +65,14 @@ public class NotificationsServant extends NotificationsServiceGrpc.Notifications
         final Airline airline = new Airline(airlineName);
 
         try {
-            final NotificationsHistoryResponse.Builder historyBuilder = NotificationsHistoryResponse.newBuilder();
             List<NotificationData> notificationsHistoryList = notificationsService.getNotificationHistory(airline);
-            List<NotificationsResponse> notificationsResponses = new ArrayList<>();
-            for (NotificationData notification : notificationsHistoryList) {
-                notificationsResponses.add(mapNotificationData(notification));
-            }
-            historyBuilder.addAllNotifications(notificationsResponses);
+            List<NotificationsResponse> notificationsResponses = notificationsHistoryList.stream()
+                .map(this::mapNotificationData)
+                .collect(Collectors.toList());
+            NotificationsHistoryResponse history = NotificationsHistoryResponse.newBuilder()
+                .addAllNotifications(notificationsResponses)
+                .build();
+            responseObserver.onNext(history);
             responseObserver.onCompleted();
         } catch (IllegalArgumentException e) {
             responseObserver.onError(Status.NOT_FOUND.asRuntimeException());
