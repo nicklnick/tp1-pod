@@ -156,6 +156,19 @@ public class SectorServiceImpl implements SectorService {
                     .build();
 
             notificationsService.sendNotification(notification);
+        } else {
+            AssignedRange pendingRange = new AssignedRange(sector, airline, count);
+            sectorRepo.getPendingAirlineRange(sector).add(pendingRange);
+
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING)
+                    .setAirline(airline)
+                    .setCounterRange(pendingRange)
+                    .setSector(sector)
+                    .setFlights(flights)
+                    .build();
+
+            notificationsService.sendNotification(notification);
         }
 
         return result;

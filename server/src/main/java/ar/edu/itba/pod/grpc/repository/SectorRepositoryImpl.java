@@ -4,11 +4,15 @@ import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
 import ar.edu.itba.pod.grpc.services.CheckInServiceImpl;
 import ar.edu.itba.pod.grpc.services.HistoryServiceImpl;
+import ar.edu.itba.pod.grpc.services.NotificationsServiceImpl;
 import ar.edu.itba.pod.grpc.services.PassengerServiceImpl;
 import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
 import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
+import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
+import com.google.protobuf.Empty;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -18,6 +22,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     private final PassengerService passengerService = new PassengerServiceImpl();
     private final CheckInService checkInService = new CheckInServiceImpl();
     private final HistoryService historyService = new HistoryServiceImpl();
+    private final NotificationsService notificationsService = new NotificationsServiceImpl();
 
     private final List<Counter> totalCounters = new ArrayList<>();
     private final Map<Sector, List<Counter>> countersBySector = new HashMap<>();
@@ -88,7 +93,18 @@ public class SectorRepositoryImpl implements SectorRepository {
             counterId++;
         }
 
-        assignPendingRanges(sector);
+        Optional<AssignedRange> result = assignPendingRanges(sector);
+        if (result.isPresent()) {
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED)
+                    .setCounterRange(result.get())
+                    .setSector(sector)
+                    .setFlights(result.get().getFlights())
+                    .setPendingsAhead(getPendingAssignmentsAheadOf(sector, result.get()))
+                    .build();
+
+            notificationsService.sendNotification(notification);
+        }
 
         return contiguousRange;
     }
@@ -131,15 +147,36 @@ public class SectorRepositoryImpl implements SectorRepository {
                 contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
             }
         }
+
+        NotificationData freedRangeNotification = NotificationData.newBuilder()
+                .setType(NotificationType.NOTIFICATION_DISMISSED_COUNTERS)
+                .setSector(sector)
+                .setFlights(rangeToFree.get().getFlights())
+                .setPendingsAhead(getPendingAssignmentsAheadOf(sector, rangeToFree.get()))
+                .build();
+
+        notificationsService.sendNotification(freedRangeNotification);
+
+
         //luego de liberar se tiene que asignar pendientes
-        assignPendingRanges(sector);
+        Optional<AssignedRange> result = assignPendingRanges(sector);
+        if (result.isPresent()) {
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED)
+                    .setCounterRange(result.get())
+                    .setSector(sector)
+                    .setFlights(result.get().getFlights())
+                    .setPendingsAhead(getPendingAssignmentsAheadOf(sector, result.get()))
+                    .build();
+
+            notificationsService.sendNotification(notification);
+        }
+
         return rangeToFree;
     }
 
     @Override
     public synchronized Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
-
-
         // quiero ver si en rangos contiguos del sector si hay espacio contiguo para una aerolinea
         List<ContiguousRange> contiguousRangeList = ranges.get(sector);
         // chequeo cada rango contiguo para ver si tiene lugar
@@ -175,9 +212,6 @@ public class SectorRepositoryImpl implements SectorRepository {
                 }
             }
         }
-
-        // si no hay espacio contiguo, se crea un rango pendiente
-        pendingAirlineRange.get(sector).add(new AssignedRange(sector, airline, count));
 
         return Optional.empty();
     }
@@ -311,15 +345,17 @@ public class SectorRepositoryImpl implements SectorRepository {
         return assignedRange;
     }
 
-    private void assignPendingRanges(Sector sector) {
+    private Optional<AssignedRange> assignPendingRanges(Sector sector) {
         if(!pendingAirlineRange.get(sector).isEmpty()) {
             for(AssignedRange pendingRange: pendingAirlineRange.get(sector)) {
                 Optional<AssignedRange> assigned = assignCounterRangeToAirline(pendingRange.getSector(), pendingRange.getAirline(), pendingRange.getFlights(), pendingRange.getTotalCounters());
                 if(assigned.isPresent()){
                     pendingAirlineRange.get(sector).remove(pendingRange);
-                    break;
+                    return Optional.of(pendingRange);
                 }
             }
         }
+
+        return Optional.empty();
     }
 }

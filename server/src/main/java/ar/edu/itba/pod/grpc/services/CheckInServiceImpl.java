@@ -3,10 +3,7 @@ package ar.edu.itba.pod.grpc.services;
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.CheckInRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.CheckInRepository;
-import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
-import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
-import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
-import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
+import ar.edu.itba.pod.grpc.services.interfaces.*;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +14,7 @@ public class CheckInServiceImpl implements CheckInService {
     private  final PassengerService passengerService = new PassengerServiceImpl();
     private final SectorService sectorService = new SectorServiceImpl();
     private final HistoryService historyService = new HistoryServiceImpl();
+    private final NotificationsService notificationsService = new NotificationsServiceImpl();
 
     public static CheckInRepository getCheckInRepository() {
         return checkInRepository;
@@ -71,6 +69,18 @@ public class CheckInServiceImpl implements CheckInService {
         //entra a la fila
         assignedRange.getPassengers().add(booking);
         passengerService.changePassengerStatus(booking, PassengerStatus.ONGOING_CHECKIN);
+
+        NotificationData notification = NotificationData.newBuilder()
+                .setType(NotificationType.NOTIFICATION_PASSENGER_STARTED_CHECKIN)
+                .setBooking(booking)
+                .setCounterRange(assignedRange)
+                .setSector(sector)
+                .setAirline(assignedRange.getAirline())
+                .setFlight(flight)
+                .setPeople(assignedRange.getQueueSize())
+                .build();
+        notificationsService.sendNotification(notification);
+
         return assignedRange;
     }
 

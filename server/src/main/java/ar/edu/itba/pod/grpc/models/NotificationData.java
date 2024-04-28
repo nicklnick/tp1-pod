@@ -114,8 +114,13 @@ public class NotificationData {
             return this;
         }
 
-        public Builder setBooking(String booking) {
+        public Builder setBookingCode(String bookingCode) {
             this.booking = booking;
+            return this;
+        }
+
+        public Builder setBooking(Booking booking) {
+            this.booking = booking.getCode();
             return this;
         }
 
@@ -126,6 +131,12 @@ public class NotificationData {
 
         public Builder setFlights(List<Flight> flights) {
             this.flights = flights.stream().map(Flight::getCode).collect(Collectors.toList());
+            return this;
+        }
+
+        public Builder setFlight(Flight flight) {
+            this.flights = new ArrayList<>();
+            this.flights.add(flight.getCode());
             return this;
         }
 
