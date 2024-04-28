@@ -39,4 +39,19 @@ public class HistoryServiceImpl implements HistoryService {
     public CheckIn getPassengerCheckIn(Optional<Booking> maybePassenger) {
         return maybePassenger.map(historyRepo::getPassengerCheckIn).orElse(null);
     }
+
+    @Override
+    public List<CheckIn> getAllCheckIns() {
+        return historyRepo.getAllCheckIns();
+    }
+
+    @Override
+    public List<AssignedRange> getAssignedRangesHistory() {
+        return historyRepo.getAssignedRangesHistory();
+    }
+
+    @Override
+    public void addAssignedRange(AssignedRange assignedRange) {
+        historyRepo.addAssignedRange(assignedRange);
+    }
 }
