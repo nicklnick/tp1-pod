@@ -16,8 +16,8 @@ public class PassengerServiceImpl implements PassengerService {
     public void addExpectedPassenger(Booking booking, Flight flight) throws IllegalArgumentException {
         if(passengerRepo.containsPassengerWithBooking(booking))
             throw new IllegalArgumentException("Passenger with given booking already exists");
-        else if (passengerRepo.containsPassengerWithFlight(flight))
-            throw new IllegalArgumentException("Passenger with given flight already exists");
+        else if (passengerRepo.containsFlightWithAnotherAirline(flight))
+            throw new IllegalArgumentException("Flight already exists with another airline");
 
         passengerRepo.addExpectedPassenger(booking, flight);
     }

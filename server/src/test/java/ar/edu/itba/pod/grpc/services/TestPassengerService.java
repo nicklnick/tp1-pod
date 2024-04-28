@@ -27,6 +27,7 @@ public class TestPassengerService {
         passengersData.add(new Triple<>("Y200", "BB200", "AirlineB"));
         passengersData.add(new Triple<>("Y201", "BB200", "AirlineB"));
 
+        // Create entities
         for (Triple<String, String, String> passengerData : passengersData) {
             Booking booking = new Booking(passengerData.getFirst());
             Airline airline = new Airline(passengerData.getThird());
@@ -43,6 +44,7 @@ public class TestPassengerService {
         List<Flight> expectedPassengersFlights = expectedPassengers.values().stream().toList();
         Assert.assertEquals(expectedPassengersFlights.size(), passengersData.size());
 
+        // Check if flights were placed properly with corresponding airlines
         String[] airlineAFlight100BookingCodes = {"X100", "X101", "X102"};
         Airline airlineA = new Airline("AirlineA");
         Flight airlineAFlight100 = new Flight(airlineA,"AA100");
@@ -66,6 +68,24 @@ public class TestPassengerService {
             Assert.assertNotNull(flight);
             Assert.assertEquals(flight, airlineBFlight200);
         }
+
+        // Existing booking
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            Booking existingBooking = new Booking("X100");
+            Airline existingAirline = new Airline("AirlineC");
+            Flight existingFlight = new Flight(existingAirline, "CC200");
+
+            passengerService.addExpectedPassenger(existingBooking, existingFlight);
+        });
+
+        // Existing flight from another airline
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            Booking existingBooking = new Booking("X103");
+            Airline existingAirline = new Airline("AirlineC");
+            Flight existingFlight = new Flight(existingAirline, "AA100");
+
+            passengerService.addExpectedPassenger(existingBooking, existingFlight);
+        });
 
     }
 

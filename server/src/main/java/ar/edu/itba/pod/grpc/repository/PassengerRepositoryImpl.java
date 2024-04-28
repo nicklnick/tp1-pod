@@ -1,11 +1,13 @@
 package ar.edu.itba.pod.grpc.repository;
 
+import ar.edu.itba.pod.grpc.models.Airline;
 import ar.edu.itba.pod.grpc.models.Booking;
 import ar.edu.itba.pod.grpc.models.Flight;
 import ar.edu.itba.pod.grpc.models.PassengerStatus;
 import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PassengerRepositoryImpl implements PassengerRepository {
@@ -46,8 +48,16 @@ public class PassengerRepositoryImpl implements PassengerRepository {
     }
 
     @Override
-    public boolean containsPassengerWithFlight(Flight flight) {
-        return expectedPassengers.containsValue(flight);
+    public boolean containsFlightWithAnotherAirline(Flight flight) {
+        List<Flight> expectedPassengersFlights = expectedPassengers.values().stream().toList();
+        Airline airline = flight.getAirline();
+
+        for (Flight expectedPassengersFlight : expectedPassengersFlights) {
+            if (expectedPassengersFlight.getCode().equals(flight.getCode()) && !expectedPassengersFlight.getAirline().equals(airline))
+                return true;
+        }
+
+        return false;
     }
 
     @Override

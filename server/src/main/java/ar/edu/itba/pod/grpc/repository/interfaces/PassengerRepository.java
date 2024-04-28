@@ -18,7 +18,7 @@ public interface PassengerRepository {
 
     boolean containsPassengerWithBooking(Booking booking);
 
-    boolean containsPassengerWithFlight(Flight flight);
+    boolean containsFlightWithAnotherAirline(Flight flight);
 
     void changePassengerStatus(Booking booking, PassengerStatus status);
 }
