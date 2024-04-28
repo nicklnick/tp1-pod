@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.services;
 
+import ar.edu.itba.pod.grpc.models.Airline;
 import ar.edu.itba.pod.grpc.models.Booking;
 import ar.edu.itba.pod.grpc.models.Flight;
 import ar.edu.itba.pod.grpc.models.PassengerStatus;
@@ -54,5 +55,10 @@ public class PassengerServiceImpl implements PassengerService {
     public Booking getPassengerBooking(String bookingId) {
         Booking booking = new Booking(bookingId);
         return passengerRepo.getPassengerBooking(booking);
+    }
+
+    @Override
+    public boolean existsExpectedPassengerFromAirline(Airline airline) {
+        return passengerRepo.existsExpectedPassengerFromAirline(airline);
     }
 }

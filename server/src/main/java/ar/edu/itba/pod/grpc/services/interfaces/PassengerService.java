@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.services.interfaces;
 
+import ar.edu.itba.pod.grpc.models.Airline;
 import ar.edu.itba.pod.grpc.models.Booking;
 import ar.edu.itba.pod.grpc.models.Flight;
 import ar.edu.itba.pod.grpc.models.PassengerStatus;
@@ -20,4 +21,6 @@ public interface PassengerService {
     boolean passengerDidCheckIn(Booking booking);
 
     Booking getPassengerBooking(String bookingId);
+
+    boolean existsExpectedPassengerFromAirline(Airline airline);
 }

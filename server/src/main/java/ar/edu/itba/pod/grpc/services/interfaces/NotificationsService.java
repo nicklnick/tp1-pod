@@ -6,8 +6,8 @@ import ar.edu.itba.pod.grpc.models.NotificationData;
 import java.util.concurrent.BlockingQueue;
 
 public interface NotificationsService {
-    BlockingQueue<NotificationData> registerForNotifications(Airline airline);
-    void unregisterForNotifications(Airline airline);
+    BlockingQueue<NotificationData> registerForNotifications(Airline airline) throws IllegalArgumentException;
+    void unregisterForNotifications(Airline airline) throws IllegalArgumentException;
     void sendNotification(NotificationData notificationData);
     BlockingQueue<NotificationData> getNotificationHistory(Airline airline);
 }

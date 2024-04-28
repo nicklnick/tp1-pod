@@ -2,6 +2,7 @@ package ar.edu.itba.pod.grpc.server;
 
 import ar.edu.itba.pod.grpc.servant.AdminServant;
 import ar.edu.itba.pod.grpc.servant.CounterServant;
+import ar.edu.itba.pod.grpc.servant.NotificationsServant;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ public class Server {
         final io.grpc.Server server = ServerBuilder.forPort(port)
                 .addService(new AdminServant())
                 .addService(new CounterServant())
+                .addService(new NotificationsServant())
                 .build();
         server.start();
 

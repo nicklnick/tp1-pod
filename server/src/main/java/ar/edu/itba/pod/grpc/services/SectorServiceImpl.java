@@ -3,13 +3,16 @@ package ar.edu.itba.pod.grpc.services;
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.SectorRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
+import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 
 import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SectorServiceImpl implements SectorService {
     private static final SectorRepository sectorRepo = SectorRepositoryImpl.getInstance();
+    private final NotificationsService notificationsService = new NotificationsServiceImpl();
 
     @Override
     public void addSector(String name) {
@@ -78,7 +81,27 @@ public class SectorServiceImpl implements SectorService {
         else if(count <= 0)
             throw new IllegalArgumentException("Count must be greater than 0");
 
-        return sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
+        Optional<AssignedRange> result = sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
+
+        if (result.isPresent()) {
+            List<Range> ranges = new ArrayList<>();
+            ranges.add(result.get());
+
+            NotificationData notificationData = new NotificationData(
+                    NotificationType.NOTIFICATION_ASSIGNED_COUNTERS,
+                    airline,
+                    sector.getName(),
+                    ranges,
+                    null,
+                    flights.stream().map(Flight::getCode).collect(Collectors.toList()),
+                    0,
+                    0
+            );
+
+            notificationsService.sendNotification(notificationData);
+        }
+
+        return result;
     }
 
     @Override

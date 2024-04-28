@@ -61,6 +61,11 @@ public class PassengerRepositoryImpl implements PassengerRepository {
     }
 
     @Override
+    public boolean existsExpectedPassengerFromAirline(Airline airline) {
+        return expectedPassengers.values().stream().anyMatch((flight) -> flight.getAirline().equals(airline));
+    }
+
+    @Override
     public void changePassengerStatus(Booking booking, PassengerStatus status) {
         passengerStatus.put(booking, status);
     }
