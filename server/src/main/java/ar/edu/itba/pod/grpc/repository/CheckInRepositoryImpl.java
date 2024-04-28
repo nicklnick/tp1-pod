@@ -9,6 +9,7 @@ import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CheckInRepositoryImpl implements CheckInRepository {
 
@@ -29,7 +30,7 @@ public class CheckInRepositoryImpl implements CheckInRepository {
     }
 
     @Override
-    public void counterCheckIn(AssignedRange assignedRange) {
+    public Optional<CheckIn> counterCheckIn(AssignedRange assignedRange) {
         // busco mostrador vacio
         for (Counter counter : assignedRange.getCounters()) {
             if (counter.getStatus() == CounterStatus.READY_FOR_CHECKIN) {
@@ -44,10 +45,12 @@ public class CheckInRepositoryImpl implements CheckInRepository {
                     CheckIn checkIn = new CheckIn(assignedRange.getSector(), counter, assignedRange.getAirline(), flight, passenger, assignedRange);
                     historyService.addCheckIn(checkIn);
                     counter.setStatus(CounterStatus.READY_FOR_CHECKIN); // TODO: creo que vamos a tener problemas porque esto es un puntero distinto al posta no?
-                    return;
+
+                    return Optional.of(checkIn);
                 }
             }
         }
+        return Optional.empty();
     }
 
     @Override

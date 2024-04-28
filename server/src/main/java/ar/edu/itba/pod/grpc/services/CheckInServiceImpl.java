@@ -23,7 +23,7 @@ public class CheckInServiceImpl implements CheckInService {
     }
 
     @Override
-    public void counterCheckIn(Sector sector, int rangeId, Airline airline) {
+    public Optional<CheckIn> counterCheckIn(Sector sector, int rangeId, Airline airline) {
         if(!sectorService.containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
 
@@ -34,9 +34,9 @@ public class CheckInServiceImpl implements CheckInService {
 
         final AssignedRange assignedRange = maybeAssignedRange.get();
         if(assignedRange.getQueueSize() == 0)
-            return;
+            return Optional.empty();
 
-        checkInRepository.counterCheckIn(assignedRange);
+        return checkInRepository.counterCheckIn(assignedRange);
     }
 
     @Override
