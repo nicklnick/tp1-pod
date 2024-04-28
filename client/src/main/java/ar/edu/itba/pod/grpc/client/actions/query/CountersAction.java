@@ -48,6 +48,7 @@ public class CountersAction extends Action {
             final RepeatedQueryCounterResponse response = stub.queryCounterStatus(request);
 
             System.out.println(buildResponseHeader());
+            response.getResponsesList().forEach(counterResponse -> System.out.println(buildResponseEntry(counterResponse)));
 
         } catch (Exception e) {
             throw new IllegalArgumentException(USAGE_MESSAGE);
