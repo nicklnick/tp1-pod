@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 MAIN_CLASS="ar.edu.itba.pod.grpc.client.clients.AdminClient"
 
