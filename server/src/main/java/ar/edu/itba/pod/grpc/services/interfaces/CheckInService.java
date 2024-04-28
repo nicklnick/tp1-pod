@@ -2,8 +2,10 @@ package ar.edu.itba.pod.grpc.services.interfaces;
 
 import ar.edu.itba.pod.grpc.models.*;
 
+import java.util.Optional;
+
 public interface CheckInService {
-    void counterCheckIn(Sector sector, int rangeId, Airline airline);
+    Optional<CheckIn> counterCheckIn(Sector sector, int rangeId, Airline airline);
 
     AssignedRange getAvailableRangeForCheckIn(Booking booking);
 

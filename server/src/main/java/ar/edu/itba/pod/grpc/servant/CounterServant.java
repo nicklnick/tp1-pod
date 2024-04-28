@@ -3,7 +3,9 @@ package ar.edu.itba.pod.grpc.servant;
 import ar.edu.itba.pod.grpc.commons.Range;
 import ar.edu.itba.pod.grpc.counter.*;
 import ar.edu.itba.pod.grpc.models.*;
+import ar.edu.itba.pod.grpc.services.CheckInServiceImpl;
 import ar.edu.itba.pod.grpc.services.SectorServiceImpl;
+import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 
 public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     private final SectorService sectorService = new SectorServiceImpl();
+    private final CheckInService checkInService = new CheckInServiceImpl();
 
     @Override
     public void listSectors(Empty request, StreamObserver<SectorResponse> responseObserver) {
@@ -113,7 +116,30 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void checkInCounters(CheckInRequest request, StreamObserver<RepeatedCheckInResponse> responseObserver) {
-        super.checkInCounters(request, responseObserver);
+        final Sector sector = new Sector(request.getSectorName());
+        final Airline airline = new Airline(request.getAirline());
+        final int rangeId = request.getCounterFrom();
+
+        try {
+            final AssignedRange range = sectorService.searchAssignedRangeForAirlineBySector(rangeId, airline, sector)
+                    .orElseThrow(IllegalArgumentException::new);
+
+            final RepeatedCheckInResponse.Builder response = RepeatedCheckInResponse.newBuilder();
+            for(Counter counter : range.getCounters()) {
+                final Optional<CheckIn> maybeCheckIn = checkInService.counterCheckIn(sector, counter.getNumber(), airline);
+                response.addCheckInResponses(CheckInResponse.newBuilder()
+                        .setCounter(counter.getNumber())
+                        .setBooking(maybeCheckIn.map(checkIn -> checkIn.getBooking().getCode()).orElse(null))
+                        .setFlight(maybeCheckIn.map(checkIn -> checkIn.getFlight().getCode()).orElse(null))
+                        .build()
+                );
+            }
+
+            responseObserver.onNext(response.build());
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(Status.NOT_FOUND.asRuntimeException());
+        }
     }
 
     @Override
