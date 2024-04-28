@@ -82,6 +82,8 @@ public class SectorServiceImpl implements SectorService {
     public Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         // ---- casos de error ----
 
+        List<Flight> assignedFlights = new ArrayList<>(flights);
+
         if(!containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
         else if(count <= 0)
@@ -91,13 +93,13 @@ public class SectorServiceImpl implements SectorService {
 
         // chequeo si los vuelos indicados tienen pasajeros esperados
         for (Booking booking : expectedPassengers.keySet()) {
-            if (flights.contains(expectedPassengers.get(booking))) {
-                flights.remove(expectedPassengers.get(booking));
+            if (assignedFlights.contains(expectedPassengers.get(booking))) {
+                assignedFlights.remove(expectedPassengers.get(booking));
                 hasExpectedPassengers = true;
                 if (!expectedPassengers.get(booking).getAirline().equals(airline)) {
                     throw new IllegalArgumentException("Flight does not belong to given airline");
                 }
-                if(flights.isEmpty())
+                if(assignedFlights.isEmpty())
                     break;
                 else
                     continue;
@@ -108,7 +110,7 @@ public class SectorServiceImpl implements SectorService {
 
         // si no hay pasajeros esperados para al menos uno de los vuelos indicados, se lanza una excepción
         if (!hasExpectedPassengers) {
-            throw new IllegalArgumentException("Not expecting any passengers for any of the given flights");
+            throw new IllegalArgumentException("Not expecting any passengers for at least one of the given flights");
         }
 
         // chequeo si la aerolinea ya tiene un rango asignado o pendiente
@@ -144,24 +146,31 @@ public class SectorServiceImpl implements SectorService {
         }
         // ---- fin de casos de error ----
 
-        Optional<AssignedRange> result = sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
+        Optional<AssignedRange> result = sectorRepo.assignCounterRangeToAirline(sector, airline, flights, count);
 
         if (result.isPresent()) {
-            List<Range> ranges = new ArrayList<>();
-            ranges.add(result.get());
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS)
+                    .setAirline(airline)
+                    .setSector(sector)
+                    .setCounterRange(result.get())
+                    .setFlights(flights)
+                    .build();
 
-            NotificationData notificationData = new NotificationData(
-                    NotificationType.NOTIFICATION_ASSIGNED_COUNTERS,
-                    airline,
-                    sector.getName(),
-                    ranges,
-                    null,
-                    flights.stream().map(Flight::getCode).collect(Collectors.toList()),
-                    0,
-                    0
-            );
+            notificationsService.sendNotification(notification);
+        } else {
+            AssignedRange pendingRange = new AssignedRange(sector, airline, count);
+            sectorRepo.getPendingAirlineRange(sector).add(pendingRange);
 
-            notificationsService.sendNotification(notificationData);
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING)
+                    .setAirline(airline)
+                    .setCounterRange(pendingRange)
+                    .setSector(sector)
+                    .setFlights(flights)
+                    .build();
+
+            notificationsService.sendNotification(notification);
         }
 
         return result;
