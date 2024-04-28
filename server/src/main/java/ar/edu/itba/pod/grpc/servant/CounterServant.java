@@ -62,7 +62,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     public void assignCounters(AssignRequest request, StreamObserver<AssignResponse> responseObserver) {
         final Sector sector = new Sector(request.getSectorName());
         final Airline airline = new Airline(request.getAirline());
-        final List<Flight> flights = request.getFlightsList().stream().map(f -> new Flight(airline, f)).toList();
+        final List<Flight> flights = request.getFlightsList().stream().map(f -> new Flight(airline, f)).collect(Collectors.toCollection(ArrayList::new));
 
         try {
             final Optional<AssignedRange> maybeRange = sectorService.assignCounterRangeToAirline(sector, airline, flights, request.getCounterQty());
