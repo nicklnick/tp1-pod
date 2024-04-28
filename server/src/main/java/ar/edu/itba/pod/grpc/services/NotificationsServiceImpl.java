@@ -8,6 +8,7 @@ import ar.edu.itba.pod.grpc.repository.interfaces.NotificationsRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class NotificationsServiceImpl implements NotificationsService {
@@ -55,10 +56,10 @@ public class NotificationsServiceImpl implements NotificationsService {
     }
 
     @Override
-    public BlockingQueue<NotificationData> getNotificationHistory(Airline airline) {
+    public List<NotificationData> getNotificationHistory(Airline airline) throws IllegalArgumentException {
         if (!notificationRepository.isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
-        return notificationRepository.getNotificationQueue(airline);
+        return notificationRepository.getNotificationsHistory(airline);
     }
 }
