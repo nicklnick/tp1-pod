@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.server;
 
 import ar.edu.itba.pod.grpc.servant.AdminServant;
+import ar.edu.itba.pod.grpc.servant.CheckInServant;
 import ar.edu.itba.pod.grpc.servant.CounterServant;
 import ar.edu.itba.pod.grpc.servant.NotificationsServant;
 import io.grpc.ServerBuilder;
@@ -20,6 +21,7 @@ public class Server {
                 .addService(new AdminServant())
                 .addService(new CounterServant())
                 .addService(new NotificationsServant())
+                .addService(new CheckInServant())
                 .build();
         server.start();
 
