@@ -14,6 +14,8 @@ import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
@@ -59,7 +61,22 @@ public class NotificationsServant extends NotificationsServiceGrpc.Notifications
 
     @Override
     public void notificationHistory(StringValue request, StreamObserver<NotificationsHistoryResponse> responseObserver) {
-        super.notificationHistory(request, responseObserver);
+        final String airlineName = request.getValue();
+        final Airline airline = new Airline(airlineName);
+
+        try {
+            List<NotificationData> notificationsHistoryList = notificationsService.getNotificationHistory(airline);
+            List<NotificationsResponse> notificationsResponses = notificationsHistoryList.stream()
+                .map(this::mapNotificationData)
+                .collect(Collectors.toList());
+            NotificationsHistoryResponse history = NotificationsHistoryResponse.newBuilder()
+                .addAllNotifications(notificationsResponses)
+                .build();
+            responseObserver.onNext(history);
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(Status.NOT_FOUND.asRuntimeException());
+        }
     }
 
 
