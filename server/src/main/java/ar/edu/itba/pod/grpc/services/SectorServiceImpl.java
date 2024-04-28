@@ -135,6 +135,11 @@ public class SectorServiceImpl implements SectorService {
     }
 
     @Override
+    public Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector){
+        return sectorRepo.searchAssignedRangeForAirlineBySector(rangeId,airline,sector);
+    }
+
+    @Override
     public Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector) {
         if (sector.isEmpty())
             return sectorRepo.listCounters();

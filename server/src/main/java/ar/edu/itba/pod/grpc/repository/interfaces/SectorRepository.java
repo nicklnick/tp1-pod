@@ -32,6 +32,8 @@ public interface SectorRepository {
 
     Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline);
 
+    Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector);
+
     Map<Sector, List<AssignedRange>> listCounters();
 
     Map<Sector, List<AssignedRange>> listCounters(Sector sector);

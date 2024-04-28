@@ -247,6 +247,11 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
+    public Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector){
+        List<AssignedRange> assignedRanges = onGoingAirlineRange.get(sector);
+        return searchAssignedRangeForAirline(assignedRanges,rangeId,airline);
+    }
+    @Override
     public Map<Sector, List<AssignedRange>> listCounters() {
         final Map<Sector, List<AssignedRange>> result = new HashMap<>();
         // Recorro los sectores y agrego los rangos asignados a la aerolinea

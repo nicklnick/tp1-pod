@@ -28,6 +28,8 @@ public interface SectorService {
 
     Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline);
 
+    Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector);
+
     Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector);
 
     boolean containsSector(Sector sector);
