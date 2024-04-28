@@ -88,6 +88,8 @@ public class SectorRepositoryImpl implements SectorRepository {
             counterId++;
         }
 
+        assignPendingRanges(sector);
+
         return contiguousRange;
     }
 
@@ -129,71 +131,14 @@ public class SectorRepositoryImpl implements SectorRepository {
                 contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
             }
         }
+        //luego de liberar se tiene que asignar pendientes
+        assignPendingRanges(sector);
         return rangeToFree;
     }
 
     @Override
     public synchronized Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
-        // ---- casos de error ----
-        // TODO: sacar estos chequeos y moverlos al service
-        boolean hasExpectedPassengers = true;
-        Map<Booking, Flight> expectedPassengers = passengerService.listExpectedPassengers();
 
-        // chequeo si los vuelos indicados tienen pasajeros esperados
-        for (Booking booking : expectedPassengers.keySet()) {
-            if (flights.contains(expectedPassengers.get(booking))) {
-                flights.remove(expectedPassengers.get(booking));
-                hasExpectedPassengers = true;
-                if (!expectedPassengers.get(booking).getAirline().equals(airline)) {
-                    throw new IllegalArgumentException("Flight does not belong to given airline");
-                }
-                if(flights.size() == 0)
-                    break;
-                else
-                    continue;
-            }
-            hasExpectedPassengers = false;
-        }
-
-
-        // si no hay pasajeros esperados para al menos uno de los vuelos indicados, se lanza una excepción
-        if (!hasExpectedPassengers) {
-            throw new IllegalArgumentException("Not expecting any passengers for any of the given flights");
-        }
-
-        // chequeo si la aerolinea ya tiene un rango asignado o pendiente
-        for (AssignedRange assignedRange : onGoingAirlineRange.get(sector)) {
-            if (assignedRange.getAirline().equals(airline)) {
-                for (Flight flight : flights) {
-                    if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
-                    }
-                }
-            }
-        }
-
-        // chequeo si la aerolinea ya tiene un rango pendiente
-        for (AssignedRange assignedRange : pendingAirlineRange.get(sector)) {
-            if (assignedRange.getAirline().equals(airline)) {
-                for (Flight flight : flights) {
-                    if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Pending range assignment already existing for at least one of the given flights");
-                    }
-                }
-            }
-        }
-        // chequeo si la aerolinea ya tiene un check-in iniciado
-        // TODO: sacar el repo y poner el service cuando esté hecho
-        // TODO: revisarlo
-        Map<Airline, List<CheckIn>> airlineCheckIns = HistoryRepositoryImpl.getInstance().getAirlineCheckInHistory();
-        for (CheckIn checkIn : airlineCheckIns.getOrDefault(airline,new ArrayList<>())) {
-            for (Flight flight : flights) {
-                if (checkIn.getFlight().equals(flight)) {
-                    throw new IllegalArgumentException("Flight check-in can't start more than once");
-                }
-            }
-        }
-        // ---- fin de casos de error ----
 
         // quiero ver si en rangos contiguos del sector si hay espacio contiguo para una aerolinea
         List<ContiguousRange> contiguousRangeList = ranges.get(sector);
@@ -233,6 +178,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
         // si no hay espacio contiguo, se crea un rango pendiente
         pendingAirlineRange.get(sector).add(new AssignedRange(sector, airline, count));
+
         return Optional.empty();
     }
 
@@ -363,5 +309,17 @@ public class SectorRepositoryImpl implements SectorRepository {
         onGoingAirlineRange.get(sector).add(assignedRange);
 
         return assignedRange;
+    }
+
+    private void assignPendingRanges(Sector sector) {
+        if(!pendingAirlineRange.get(sector).isEmpty()) {
+            for(AssignedRange pendingRange: pendingAirlineRange.get(sector)) {
+                Optional<AssignedRange> assigned = assignCounterRangeToAirline(pendingRange.getSector(), pendingRange.getAirline(), pendingRange.getFlights(), pendingRange.getTotalCounters());
+                if(assigned.isPresent()){
+                    pendingAirlineRange.get(sector).remove(pendingRange);
+                    break;
+                }
+            }
+        }
     }
 }

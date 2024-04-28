@@ -7,8 +7,8 @@ import org.checkerframework.checker.units.qual.A;
 import java.util.List;
 
 public enum QueryActions {
-    CHECK_INS("checkins", new CheckInsAction(List.of())),
     COUNTERS("counters", new CountersAction(List.of(Arguments.SECTOR))),
+    CHECK_INS("checkins", new CheckInsAction(List.of(Arguments.SECTOR, Arguments.AIRLINE))),
     HISTORY("history", new HistoryAction(List.of(Arguments.SECTOR, Arguments.COUNTER)))
     ;
 

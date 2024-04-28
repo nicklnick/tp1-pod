@@ -3,7 +3,9 @@ package ar.edu.itba.pod.grpc.services;
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.SectorRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
+import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
+import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 
 import javax.swing.text.html.Option;
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
 public class SectorServiceImpl implements SectorService {
     private static final SectorRepository sectorRepo = SectorRepositoryImpl.getInstance();
     private final NotificationsService notificationsService = new NotificationsServiceImpl();
+    private final PassengerService passengerService = new PassengerServiceImpl();
+    private final HistoryService historyService = new HistoryServiceImpl();
 
     @Override
     public void addSector(String name) {
@@ -76,10 +80,69 @@ public class SectorServiceImpl implements SectorService {
 
     @Override
     public Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
+        // ---- casos de error ----
+
         if(!containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
         else if(count <= 0)
             throw new IllegalArgumentException("Count must be greater than 0");
+        boolean hasExpectedPassengers = true;
+        Map<Booking, Flight> expectedPassengers = passengerService.listExpectedPassengers();
+
+        // chequeo si los vuelos indicados tienen pasajeros esperados
+        for (Booking booking : expectedPassengers.keySet()) {
+            if (flights.contains(expectedPassengers.get(booking))) {
+                flights.remove(expectedPassengers.get(booking));
+                hasExpectedPassengers = true;
+                if (!expectedPassengers.get(booking).getAirline().equals(airline)) {
+                    throw new IllegalArgumentException("Flight does not belong to given airline");
+                }
+                if(flights.isEmpty())
+                    break;
+                else
+                    continue;
+            }
+            hasExpectedPassengers = false;
+        }
+
+
+        // si no hay pasajeros esperados para al menos uno de los vuelos indicados, se lanza una excepción
+        if (!hasExpectedPassengers) {
+            throw new IllegalArgumentException("Not expecting any passengers for any of the given flights");
+        }
+
+        // chequeo si la aerolinea ya tiene un rango asignado o pendiente
+        for (AssignedRange assignedRange : sectorRepo.getOnGoingAirlineRange().get(sector)) {
+            if (assignedRange.getAirline().equals(airline)) {
+                for (Flight flight : flights) {
+                    if (assignedRange.getFlights().contains(flight)) {
+                        throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
+                    }
+                }
+            }
+        }
+
+        // chequeo si la aerolinea ya tiene un rango pendiente
+        for (AssignedRange assignedRange : sectorRepo.getPendingAirlineRange(sector)) {
+            if (assignedRange.getAirline().equals(airline)) {
+                for (Flight flight : flights) {
+                    if (assignedRange.getFlights().contains(flight)) {
+                        throw new IllegalArgumentException("Pending range assignment already existing for at least one of the given flights");
+                    }
+                }
+            }
+        }
+        // chequeo si la aerolinea ya tiene un check-in iniciado
+        // TODO: revisarlo
+        List<CheckIn> airlineCheckIns = historyService.getAirlineCheckInHistory(Optional.of(airline));
+        for (CheckIn checkIn : airlineCheckIns) {
+            for (Flight flight : flights) {
+                if (checkIn.getFlight().equals(flight)) {
+                    throw new IllegalArgumentException("Flight check-in can't start more than once");
+                }
+            }
+        }
+        // ---- fin de casos de error ----
 
         Optional<AssignedRange> result = sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
 
