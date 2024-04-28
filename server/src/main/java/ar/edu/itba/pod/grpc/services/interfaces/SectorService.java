@@ -20,7 +20,7 @@ public interface SectorService {
 
     Queue<AssignedRange> getPendingAirlineRange(Sector sector);
 
-    void freeAssignedRange(Sector sector, Airline airline, int rangeId);
+    Optional<AssignedRange> freeAssignedRange(Sector sector, Airline airline, int rangeId);
 
     Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flight, int count);
 

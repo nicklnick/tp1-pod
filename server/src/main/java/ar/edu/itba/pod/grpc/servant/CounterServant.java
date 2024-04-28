@@ -88,11 +88,27 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             responseObserver.onError(e);
         }
     }
-
     @Override
     public void freeCounters(FreeCountersRequest request, StreamObserver<FreeCountersResponse> responseObserver) {
+        Sector sector = new Sector(request.getSectorName());
+        Airline airline = new Airline(request.getAirline());
+        int rangedId = request.getCounterFrom();
+        try {
+            AssignedRange assignedRange = sectorService.freeAssignedRange(sector, airline, rangedId).orElseThrow(Status.NOT_FOUND::asRuntimeException);
+            final FreeCountersResponse response = FreeCountersResponse.newBuilder()
+                    .addAllFlights(assignedRange.getFlights().stream().map(Flight::getCode).collect(Collectors.toList()))
+                    .setCounterQty(assignedRange.getTotalCounters())
+                    .setCounterRange(Range.newBuilder().setFrom(assignedRange.getStart()).setTo(assignedRange.getEnd()))
+                    .build();
 
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
 
+        } catch (StatusRuntimeException e) {
+            responseObserver.onError(e);
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException());
+        }
     }
 
     @Override

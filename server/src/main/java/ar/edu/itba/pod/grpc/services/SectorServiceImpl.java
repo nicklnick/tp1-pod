@@ -62,13 +62,13 @@ public class SectorServiceImpl implements SectorService {
     }
 
     @Override
-    public void freeAssignedRange(Sector sector, Airline airline, int rangeId) {
+    public Optional<AssignedRange> freeAssignedRange(Sector sector, Airline airline, int rangeId) {
         if(!containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
         else if(rangeId <= 0)
             throw new IllegalArgumentException("RangeId must be greater than 0");
 
-        sectorRepo.freeAssignedRange(sector, airline, rangeId);
+        return sectorRepo.freeAssignedRange(sector, airline, rangeId);
     }
 
     @Override

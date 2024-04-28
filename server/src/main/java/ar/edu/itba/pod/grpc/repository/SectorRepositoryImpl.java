@@ -117,7 +117,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
-    public void freeAssignedRange(Sector sector, Airline airline, int rangeId) {
+    public Optional<AssignedRange> freeAssignedRange(Sector sector, Airline airline, int rangeId) {
         final Optional<AssignedRange> rangeToFree = searchAssignedRangeForAirline(onGoingAirlineRange.get(sector), rangeId, airline);
         if(rangeToFree.isEmpty())
             throw new IllegalArgumentException("Assigned range not found for given airline");
@@ -129,6 +129,7 @@ public class SectorRepositoryImpl implements SectorRepository {
                 contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
             }
         }
+        return rangeToFree;
     }
 
     @Override
