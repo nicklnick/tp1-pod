@@ -222,3 +222,6 @@ $RECYCLE.BIN/
 
 .idea
 target
+
+### Env files
+*.env
