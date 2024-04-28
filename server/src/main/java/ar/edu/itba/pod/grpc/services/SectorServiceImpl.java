@@ -147,21 +147,15 @@ public class SectorServiceImpl implements SectorService {
         Optional<AssignedRange> result = sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
 
         if (result.isPresent()) {
-            List<Range> ranges = new ArrayList<>();
-            ranges.add(result.get());
+            NotificationData notification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS)
+                    .setAirline(airline)
+                    .setSector(sector)
+                    .setCounterRange(result.get())
+                    .setFlights(flights)
+                    .build();
 
-            NotificationData notificationData = new NotificationData(
-                    NotificationType.NOTIFICATION_ASSIGNED_COUNTERS,
-                    airline,
-                    sector.getName(),
-                    ranges,
-                    null,
-                    flights.stream().map(Flight::getCode).collect(Collectors.toList()),
-                    0,
-                    0
-            );
-
-            notificationsService.sendNotification(notificationData);
+            notificationsService.sendNotification(notification);
         }
 
         return result;
