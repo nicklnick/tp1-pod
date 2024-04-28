@@ -5,26 +5,33 @@ The following version are needed to run the server executable as well as the cli
 
 ---
 
+# Errors
+In case of any error while running any of the instructions, you can refer to the ``Common Problems`` section at the end of the document to find some solutions.
+
+---
+
 # Deploying server
 ## Prerequisites
-Create a ``.env`` file inside the project´s root path with the variable ``SFTP_USER``with the credentials of your ``SSH`` server.
+Create the file named ``.env`` inside the project´s root path with the variable ``SFTP_USER``with the credentials of your ``SSH`` server.
 For example:
 
-    SFTP_USER=[user]@[server]
+    SFTP_USER=user@server
+
+***Note*** : The file name is ``.env``. If you use a different name it would not work.
 
 ---
 Follow these instructions to deploy and run the server:
-
-1. Run the ``deploy.sh`` script inside the project root path.
-2. An SFTP prompt for typing password of the ssh server should appear
-3. Enter your password
-4. Type ``put server/target/tpe1-g1-server-2024.1Q-bin.tar.gz /path-in-ssh-server``.
-5. Enter using ``ssh`` to your server.
-6. You would find the ``.tar.gz`` in the ``/path-in-ssh-server``
-7. Run ``tar -xzvf tpe1-g1-server-2024.1Q-bin.tar.gz``
-8. Run ``cd tpe1-g1-server-2024.1Q``
-9. Run ``chmod u+x run-server.sh``
-10. Run ``sh run_server.sh -Dport=[portNumber]``
+1. Run ``chmod u+x deploy.sh``
+2. Run the ``deploy.sh`` script inside the project root path.
+3. An SFTP prompt for typing password of the ssh server should appear
+4. Enter your password
+5. Type ``put server/target/tpe1-g1-server-2024.1Q-bin.tar.gz /path-in-ssh-server``. Then you can ``exit``.
+6. Enter using ``ssh`` to your server.
+7. You would find the ``.tar.gz`` in the ``/path-in-ssh-server``
+8. Run ``tar -xzvf tpe1-g1-server-2024.1Q-bin.tar.gz``
+9. Run ``cd tpe1-g1-server-2024.1Q``
+10. Run ``chmod u+x run-server.sh``
+11. Run ``sh run-server.sh -Dport=[portNumber]``
 
 Alternatively, if you simply want to run the server locally or in a different environment you can follow steps ``7`` to ``9``, previously running:
 1. ``mvn clean package`` inside project´s root path.
@@ -38,13 +45,13 @@ In case of any problem in the previous steps, refer to section ``common problems
 ## Prerequisites
 1. Run ```mvn clean package``` from project´s root path.
 2. ``cd client/target/``
-3. ```tar -xzvf tpe-g1-client-2024.1Q-bin.tar.gz```
-4. ```sudo chmod u+x tpe1-g1-client-2024-1Q/*```
-5. ```cd tpe1-g1-client-2024-1Q```
+3. ```tar -xzvf tpeq-g1-client-2024.1Q-bin.tar.gz```
+4. ```sudo chmod u+x tpe1-g1-client-2024.1Q/*```
+5. ```cd tpe1-g1-client-2024.1Q```
 
 If server is deployed in an SSH server you can also run your client locally and establish a connection remotely.
 
-``ssh -L [localPort]:[remoteHost]:[remotePort] [user]@[server]
+``ssh -L [localPort]:[remoteHost]:[remotePort] user@server
 ``
 
 ---
@@ -237,4 +244,23 @@ When running the ``run-server.sh`` script or any of the ``.sh`` client scripts m
 This could happend if the scripts where written in a Windows system where the end of line is ``\r\n``.
 
 To get rid of such problem you can try running ``sed -i 's/\r$//' script.sh``
+
+## Bad Interpreter
+
+If you see a problem related with the bash interpreter try running it with
+``bash script.sh`` or ``sh script.sh``
+
+## Syntax error 
+
+Is the same problem as ```Java Class Not Found```
+
+You must replace the ``\r\n`` inside the script.
+
+Refer to the ```Java Class Not Found``` section to see a solution.
+
+## SFTP Prompt
+If the SFTP prompt does not appear when running ``deploy.sh`` maybe the ``.env`` file you create has a diferrent name. For example a ``credentials.env`` woudl be invalid.
+
+Maybe you don´t see the prompt because SFTP ask you to configure the RSA key with the SSH server.
+Type ``y`` and then the password prompt should appear.
 
