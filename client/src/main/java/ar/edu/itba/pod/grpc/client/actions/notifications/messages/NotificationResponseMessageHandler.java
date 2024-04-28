@@ -29,8 +29,7 @@ public class NotificationResponseMessageHandler {
                         formatCounterRange(n.getCounterRangeList()),
                         n.getSector(),
                         System.getProperty(Arguments.AIRLINE),
-                        formatF
-                        glightsList(n.getFlightsList())
+                        formatFlightsList(n.getFlightsList())
                 )
         );
 
