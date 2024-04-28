@@ -9,12 +9,15 @@ import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PassengerRepositoryImpl implements PassengerRepository {
 
     private static PassengerRepositoryImpl instance;
     private final Map<Booking, Flight> expectedPassengers = new HashMap<>();
     private final Map<Booking, PassengerStatus> passengerStatus = new HashMap<>();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     private PassengerRepositoryImpl() {
     }
@@ -27,51 +30,91 @@ public class PassengerRepositoryImpl implements PassengerRepository {
     }
 
     @Override
-    public synchronized void addExpectedPassenger(Booking booking, Flight flight) {
-        expectedPassengers.put(booking, flight);
-        passengerStatus.put(booking, PassengerStatus.PENDING_CHECKIN);
+    public void addExpectedPassenger(Booking booking, Flight flight) {
+        readWriteLock.writeLock().lock();
+        try {
+            expectedPassengers.put(booking, flight);
+            passengerStatus.put(booking, PassengerStatus.PENDING_CHECKIN);
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     @Override
     public Map<Booking, Flight> listExpectedPassengers() {
-        return Map.copyOf(expectedPassengers);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(expectedPassengers);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public Map<Booking, PassengerStatus> listPassengerStatus() {
-        return Map.copyOf(passengerStatus);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(passengerStatus);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public boolean containsPassengerWithBooking(Booking booking) {
-        return expectedPassengers.containsKey(booking);
+        readWriteLock.readLock().lock();
+        try {
+            return expectedPassengers.containsKey(booking);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public boolean containsFlightWithAnotherAirline(Flight flight) {
-        List<Flight> expectedPassengersFlights = expectedPassengers.values().stream().toList();
-        Airline airline = flight.getAirline();
+        readWriteLock.readLock().lock();
+        try {
+            List<Flight> expectedPassengersFlights = expectedPassengers.values().stream().toList();
+            Airline airline = flight.getAirline();
 
-        for (Flight expectedPassengersFlight : expectedPassengersFlights) {
-            if (expectedPassengersFlight.getCode().equals(flight.getCode()) && !expectedPassengersFlight.getAirline().equals(airline))
-                return true;
+            for (Flight expectedPassengersFlight : expectedPassengersFlights) {
+                if (expectedPassengersFlight.getCode().equals(flight.getCode()) && !expectedPassengersFlight.getAirline().equals(airline))
+                    return true;
+            }
+
+            return false;
+        } finally {
+            readWriteLock.readLock().unlock();
         }
-
-        return false;
     }
 
     @Override
     public boolean existsExpectedPassengerFromAirline(Airline airline) {
-        return expectedPassengers.values().stream().anyMatch((flight) -> flight.getAirline().equals(airline));
+        readWriteLock.readLock().lock();
+        try {
+            return expectedPassengers.values().stream().anyMatch((flight) -> flight.getAirline().equals(airline));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public void changePassengerStatus(Booking booking, PassengerStatus status) {
-        passengerStatus.put(booking, status);
+        readWriteLock.writeLock().lock();
+        try {
+            passengerStatus.put(booking, status);
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     @Override
     public Booking getPassengerBooking(Booking booking) {
-        return expectedPassengers.keySet().stream().filter(b -> b.equals(booking)).findFirst().orElse(null);
+        readWriteLock.readLock().lock();
+        try {
+            return expectedPassengers.keySet().stream().filter(b -> b.equals(booking)).findFirst().orElse(null);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 }

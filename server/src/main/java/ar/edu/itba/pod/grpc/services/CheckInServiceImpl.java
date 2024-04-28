@@ -42,7 +42,10 @@ public class CheckInServiceImpl implements CheckInService {
         if(!passengerService.containsPassengerWithBooking(booking)) {
             throw new IllegalArgumentException("Not expecting any passengers with given booking");
         }
-        return checkInRepository.getAvailableRangeForCheckIn(booking);
+
+        Flight flight = passengerService.listExpectedPassengers().get(booking);
+
+        return checkInRepository.getAvailableRangeForCheckIn(flight);
     }
 
     // tiene que devolver todos los datos del rango

@@ -5,6 +5,7 @@ import ar.edu.itba.pod.grpc.models.Booking;
 import ar.edu.itba.pod.grpc.models.Flight;
 import ar.edu.itba.pod.grpc.models.PassengerStatus;
 
+import java.util.List;
 import java.util.Map;
 
 public interface PassengerService {
@@ -23,4 +24,6 @@ public interface PassengerService {
     Booking getPassengerBooking(String bookingId);
 
     boolean existsExpectedPassengerFromAirline(Airline airline);
+
+    boolean eachFlightIsExpectingAtLeastOnePassenger(Airline airline, List<Flight> flights);
 }

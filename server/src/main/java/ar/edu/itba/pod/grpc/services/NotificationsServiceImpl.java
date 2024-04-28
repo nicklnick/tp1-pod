@@ -16,7 +16,7 @@ public class NotificationsServiceImpl implements NotificationsService {
     private final Object notificationsLock = "notificationsLock";
     @Override
     public BlockingQueue<NotificationData> registerForNotifications(Airline airline) {
-        if (notificationRepository.isRegisteredForNotifications(airline)) {
+        if (isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is already registered for notifications");
         }
 
@@ -30,7 +30,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public void unregisterForNotifications(Airline airline) throws IllegalArgumentException {
-        if (!notificationRepository.isRegisteredForNotifications(airline)) {
+        if (!isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
 
@@ -46,7 +46,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public void sendNotification(NotificationData notificationData) throws IllegalArgumentException {
-        if (!notificationRepository.isRegisteredForNotifications(notificationData.getAirline())) {
+        if (!isRegisteredForNotifications(notificationData.getAirline())) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
         synchronized (notificationsLock) {
@@ -56,9 +56,14 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public BlockingQueue<NotificationData> getNotificationHistory(Airline airline) {
-        if (!notificationRepository.isRegisteredForNotifications(airline)) {
+        if (!isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
         return notificationRepository.getNotificationQueue(airline);
+    }
+
+    @Override
+    public boolean isRegisteredForNotifications(Airline airline) {
+        return notificationRepository.isRegisteredForNotifications(airline);
     }
 }
