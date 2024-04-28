@@ -307,6 +307,11 @@ public class SectorRepositoryImpl implements SectorRepository {
                 .orElse(-1);
     }
 
+    @Override
+    public boolean airportContainsAtLeastOneCounter() {
+        return !countersBySector.isEmpty();
+    }
+
 
     // Given a Counter list, it returns a list of Ranges
     // Eg. [1, 2, 3, 5, 6, 7, 8] -> [1-3, 5-8]
