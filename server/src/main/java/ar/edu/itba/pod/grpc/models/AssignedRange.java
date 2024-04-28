@@ -25,7 +25,7 @@ public class AssignedRange extends Range {
         this.airline = airline;
         this.totalCounters = totalCounters;
         this.flights = new ArrayList<>();
-        this.counters = new ArrayList<>();
+        this.counters = new HashMap<>();
         this.passengers = new LinkedBlockingQueue<>();
     }
 
