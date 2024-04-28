@@ -136,6 +136,9 @@ public class SectorServiceImpl implements SectorService {
 
     @Override
     public Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector) {
+        if(!sectorRepo.airportContainsAtLeastOneCounter())
+            throw new IllegalStateException("No counters found");
+
         if (sector.isEmpty())
             return sectorRepo.listCounters();
 

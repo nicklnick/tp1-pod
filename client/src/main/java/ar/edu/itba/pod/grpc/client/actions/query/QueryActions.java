@@ -8,7 +8,7 @@ import java.util.List;
 
 public enum QueryActions {
     CHECK_INS("checkins", new CheckInsAction(List.of())),
-    COUNTERS("counters", new CountersAction(List.of(Arguments.SECTOR, Arguments.AIRLINE))),
+    COUNTERS("counters", new CountersAction(List.of(Arguments.SECTOR))),
     HISTORY("history", new HistoryAction(List.of(Arguments.SECTOR, Arguments.COUNTER)))
     ;
 

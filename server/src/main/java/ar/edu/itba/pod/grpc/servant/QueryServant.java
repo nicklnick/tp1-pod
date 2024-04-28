@@ -7,9 +7,11 @@ import ar.edu.itba.pod.grpc.services.HistoryServiceImpl;
 import ar.edu.itba.pod.grpc.services.SectorServiceImpl;
 import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,7 +23,32 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
 
     @Override
     public void queryCounterStatus(QueryCounterRequest request, StreamObserver<RepeatedQueryCounterResponse> responseObserver) {
+        final Optional<Sector> maybeSector = request.hasSector() ? Optional.of(new Sector(request.getSector())) : Optional.empty();
 
+        try {
+            final Map<Sector, List<AssignedRange>> sectorCounters = sectorService.listCounters(maybeSector);
+
+            final RepeatedQueryCounterResponse response = RepeatedQueryCounterResponse.newBuilder()
+                    .addAllResponses(sectorCounters.entrySet().stream().map(entry -> {
+                        final Sector sector = entry.getKey();
+                        final List<AssignedRange> counters = entry.getValue();
+
+                        return counters.stream().map(counter -> QueryCounterResponse.newBuilder()
+                                .setSector(sector.getName())
+                                .setCounters(Range.newBuilder().setFrom(counter.getStart()).setTo(counter.getEnd()).build())
+                                .setAirline(counter.getAirline().getName())
+                                .addAllFlights(counter.getFlights().stream().map(Flight::getCode).toList())
+                                .setPeople(counter.getQueueSize())
+                                .build()
+                        ).collect(Collectors.toList());
+                    }).flatMap(List::stream).collect(Collectors.toList()))
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (IllegalStateException e) {
+            responseObserver.onError(Status.FAILED_PRECONDITION.asRuntimeException());
+        }
     }
 
     @Override

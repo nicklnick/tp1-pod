@@ -37,4 +37,6 @@ public interface SectorRepository {
     Map<Sector, List<AssignedRange>> listCounters(Sector sector);
 
     int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range);
+
+    boolean airportContainsAtLeastOneCounter();
 }
