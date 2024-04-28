@@ -15,5 +15,10 @@ public interface HistoryService {
 
     List<CheckIn> getCounterCheckInHistory(Optional<Counter> maybeCounter);
 
+    List<CheckIn> getAllCheckIns();
     CheckIn getPassengerCheckIn(Optional<Booking> maybePassenger);
+
+    List<AssignedRange> getAssignedRangesHistory();
+
+    void addAssignedRange(AssignedRange assignedRange);
 }

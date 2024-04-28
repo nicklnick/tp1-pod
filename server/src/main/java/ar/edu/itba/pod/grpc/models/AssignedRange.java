@@ -1,14 +1,12 @@
 package ar.edu.itba.pod.grpc.models;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class AssignedRange extends Range {
     private final Airline airline;
     private final int totalCounters;
-    private final List<Counter> counters;
+    private final Map<Counter, Integer> counters;
     private final List<Flight> flights;
     private final Queue<Booking> passengers;
 
@@ -18,7 +16,7 @@ public class AssignedRange extends Range {
         this.airline = airline;
         this.totalCounters = totalCounters;
         this.flights = new ArrayList<>();
-        this.counters = new ArrayList<>();
+        this.counters = new HashMap<>();
         this.passengers = new LinkedBlockingQueue<>();
     }
 
@@ -27,7 +25,7 @@ public class AssignedRange extends Range {
     }
 
     public void addCounter(Counter counter) {
-        counters.add(counter);
+        counters.putIfAbsent(counter,0);
     }
 
     public void addPassenger(Booking booking) {
@@ -55,6 +53,9 @@ public class AssignedRange extends Range {
     }
 
     public List<Counter> getCounters() {
+        return counters.keySet().stream().toList();
+    }
+    public Map<Counter, Integer> getCountersMap() {
         return counters;
     }
 }

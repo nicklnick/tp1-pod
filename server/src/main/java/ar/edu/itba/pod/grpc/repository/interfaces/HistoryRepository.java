@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.repository.interfaces;
 
 import ar.edu.itba.pod.grpc.models.*;
+import ar.edu.itba.pod.grpc.repository.HistoryRepositoryImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -25,4 +26,10 @@ public interface HistoryRepository {
     boolean passangerDidCheckin(Booking passenger);
 
     CheckIn getPassengerCheckIn(Booking passenger);
+
+    List<CheckIn> getAllCheckIns();
+
+    List<AssignedRange> getAssignedRangesHistory();
+
+    void addAssignedRange(AssignedRange assignedRange);
 }
