@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.client.actions.notifications.messages;
 
+import ar.edu.itba.pod.grpc.client.constants.Arguments;
 import ar.edu.itba.pod.grpc.client.utils.messages.MessageFormatterHandler;
 import ar.edu.itba.pod.grpc.notifications.NotificationType;
 import ar.edu.itba.pod.grpc.notifications.NotificationsResponse;
@@ -13,15 +14,15 @@ public class NotificationResponseMessageHandler {
     }
 
     private void registerHandlers() {
-        this.formatters.registerFormatter(NotificationType.NOTIFICATION_AIRLINE_ADDED,
+        this.formatters.registerFormatter(NotificationType.NOTIFICATION_REGISTER,
                 (n) -> String.format("%s registered successfully for check-in events",
-                        "airlineName"
+                        System.getProperty(Arguments.AIRLINE)
                 )
         );
 
         this.formatters.registerFormatter(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS,
                 n -> String.format("%s counters %s in Sector %s are now checking in passengers from %s %s flights",
-                        n.getCounterRangeList(),
+                        n.getCounterRangeCount(),
                         n.getCounterRangeList(),
                         n.getSector(),
                         "airlineName",
