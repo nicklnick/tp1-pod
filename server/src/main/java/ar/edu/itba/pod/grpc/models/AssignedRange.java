@@ -62,7 +62,7 @@ public class AssignedRange extends Range {
     }
 
     public List<Counter> getCounters() {
-        return counters.keySet().stream().toList();
+        return new ArrayList<>(counters.keySet().stream().toList());
     }
     public Map<Counter, Integer> getCountersMap() {
         return counters;
