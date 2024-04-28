@@ -10,6 +10,7 @@ import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class SectorRepositoryImpl implements SectorRepository {
 
@@ -131,7 +132,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
-    public synchronized void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
+    public synchronized Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         // ---- casos de error ----
         // TODO: sacar estos chequeos y moverlos al service
         boolean hasExpectedPassengers = true;
@@ -217,16 +218,21 @@ public class SectorRepositoryImpl implements SectorRepository {
                         break;
                     }
                 }
-                // si la cantidad de contadores a agregar es igual a la cantidad de contadores necesarios, se cambia el estado de los contadores y se agrega el rango asignado
+                // si la cantidad de contadores a agregar es igual a la cantidad de contadores necesarios,
+                // se cambia el estado de los contadores y se agrega el rango asignado
                 if (countersToAdd.size() == count) {
                     countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY_FOR_CHECKIN));
-                    finishSetupOfAssignedRange(count, airline, countersToAdd, sector, flights);
+                    final AssignedRange result = finishSetupOfAssignedRange(count, airline, countersToAdd, sector, flights);
                     range.occupy(count);
-                    return;
-                }
 
+                    return Optional.of(result);
+                }
             }
         }
+
+        // si no hay espacio contiguo, se crea un rango pendiente
+        pendingAirlineRange.get(sector).add(new AssignedRange(sector, airline, count));
+        return Optional.empty();
     }
 
     // TODO: que onda esto? no usa nada de la clase repository
@@ -286,6 +292,17 @@ public class SectorRepositoryImpl implements SectorRepository {
         return result;
     }
 
+    @Override
+    public int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range) {
+        final Queue<AssignedRange> queue = pendingAirlineRange.get(sector);
+
+        return IntStream.range(0, queue.size())
+                .filter(i -> queue.toArray()[i].equals(range))
+                .findFirst()
+                .orElse(-1);
+    }
+
+
     // Given a Counter list, it returns a list of Ranges
     // Eg. [1, 2, 3, 5, 6, 7, 8] -> [1-3, 5-8]
     private List<AssignedRange> obtainRanges(List<Counter> countersToAdd) {
@@ -324,7 +341,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         return null;
     }
 
-    private void finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
+    private AssignedRange finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
         final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), sector, airline, count);
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
@@ -333,5 +350,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         }
         historyService.addAssignedRange(assignedRange);
         onGoingAirlineRange.get(sector).add(assignedRange);
+
+        return assignedRange;
     }
 }

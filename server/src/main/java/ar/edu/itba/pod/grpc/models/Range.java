@@ -12,6 +12,14 @@ public abstract class Range {
         this.sector = sector;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Range range = (Range) o;
+        return start == range.start && end == range.end && sector.equals(range.sector);
+    }
+
     public int getStart() {
         return start;
     }

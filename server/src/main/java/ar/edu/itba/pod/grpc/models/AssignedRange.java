@@ -20,6 +20,15 @@ public class AssignedRange extends Range {
         this.passengers = new LinkedBlockingQueue<>();
     }
 
+    public AssignedRange(Sector sector, Airline airline, int totalCounters) {
+        super(0, 0, sector);
+        this.airline = airline;
+        this.totalCounters = totalCounters;
+        this.flights = new ArrayList<>();
+        this.counters = new ArrayList<>();
+        this.passengers = new LinkedBlockingQueue<>();
+    }
+
     public void addFlight(Flight flight) {
         this.flights.add(flight);
     }

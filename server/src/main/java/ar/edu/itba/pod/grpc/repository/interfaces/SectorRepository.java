@@ -28,11 +28,13 @@ public interface SectorRepository {
 
     void freeAssignedRange(Sector sector, Airline airline, int rangeId);
 
-    void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count);
+    Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count);
 
     Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline);
 
     Map<Sector, List<AssignedRange>> listCounters();
 
     Map<Sector, List<AssignedRange>> listCounters(Sector sector);
+
+    int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range);
 }

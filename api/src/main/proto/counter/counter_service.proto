@@ -53,7 +53,7 @@ message AssignRequest {
 message AssignResponse {
   AssignmentStatus status = 1;
   optional int32 pendings_ahead = 2;
-  Range counter_range = 3;
+  optional Range counter_range = 3;
 }
 
 

@@ -2,17 +2,18 @@ package ar.edu.itba.pod.grpc.servant;
 
 import ar.edu.itba.pod.grpc.commons.Range;
 import ar.edu.itba.pod.grpc.counter.*;
-import ar.edu.itba.pod.grpc.models.ContiguousRange;
-import ar.edu.itba.pod.grpc.models.Counter;
-import ar.edu.itba.pod.grpc.models.Sector;
+import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.services.SectorServiceImpl;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -58,7 +59,34 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void assignCounters(AssignRequest request, StreamObserver<AssignResponse> responseObserver) {
+        final Sector sector = new Sector(request.getSectorName());
+        final Airline airline = new Airline(request.getAirline());
+        final List<Flight> flights = request.getFlightsList().stream().map(f -> new Flight(airline, f)).toList();
 
+        try {
+            final Optional<AssignedRange> maybeRange = sectorService.assignCounterRangeToAirline(sector, airline, flights, request.getCounterQty());
+            final AssignResponse.Builder response = AssignResponse.newBuilder();
+            if(maybeRange.isPresent()) {
+                final Range range = Range.newBuilder()
+                        .setFrom(maybeRange.get().getStart())
+                        .setTo(maybeRange.get().getEnd())
+                        .build();
+
+                response.setCounterRange(range)
+                        .setStatus(AssignmentStatus.READY_FOR_CHECKING);
+            } else {
+                final int pendingAssignments =
+                        sectorService.getPendingAssignmentsAheadOf(sector, new AssignedRange(sector, airline, request.getCounterQty()));
+
+                response.setStatus(AssignmentStatus.PENDING_ASSIGNATION)
+                        .setPendingsAhead(pendingAssignments);
+            }
+
+            responseObserver.onNext(response.build());
+            responseObserver.onCompleted();
+        } catch (StatusRuntimeException e) {
+            responseObserver.onError(e);
+        }
     }
 
     @Override

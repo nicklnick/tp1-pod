@@ -5,6 +5,7 @@ import ar.edu.itba.pod.grpc.repository.SectorRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 
 public class SectorServiceImpl implements SectorService {
@@ -71,13 +72,13 @@ public class SectorServiceImpl implements SectorService {
     }
 
     @Override
-    public void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
+    public Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         if(!containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
         else if(count <= 0)
             throw new IllegalArgumentException("Count must be greater than 0");
 
-        sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
+        return sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
     }
 
     @Override
@@ -144,5 +145,10 @@ public class SectorServiceImpl implements SectorService {
     @Override
     public boolean containsSector(Sector sector) {
         return sectorRepo.containsSector(sector);
+    }
+
+    @Override
+    public int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range) {
+        return sectorRepo.getPendingAssignmentsAheadOf(sector, range);
     }
 }

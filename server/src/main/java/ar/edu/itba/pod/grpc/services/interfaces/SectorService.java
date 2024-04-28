@@ -22,7 +22,7 @@ public interface SectorService {
 
     void freeAssignedRange(Sector sector, Airline airline, int rangeId);
 
-    void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flight, int count);
+    Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flight, int count);
 
     List<Range> getRangesBySector(Sector sector, int from, int to);
 
@@ -31,4 +31,6 @@ public interface SectorService {
     Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector);
 
     boolean containsSector(Sector sector);
+
+    int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range);
 }
