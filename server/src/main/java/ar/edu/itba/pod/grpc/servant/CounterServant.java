@@ -11,9 +11,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -118,6 +116,27 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void listPendingAssignments(StringValue request, StreamObserver<RepeatedPendingAssignmentResponse> responseObserver) {
-        super.listPendingAssignments(request, responseObserver);
+        Sector sector = new Sector(request.getValue());
+        try {
+            Queue<AssignedRange> assignedRanges = sectorService.getPendingAirlineRange(sector);
+            List<PendingAssignmentResponse> pendingAssignmentResponses = new ArrayList<>();
+            for (AssignedRange assignedRange:assignedRanges) {
+                pendingAssignmentResponses.add(PendingAssignmentResponse.newBuilder()
+                        .setAirline(assignedRange.getAirline().getName())
+                        .setCounterQty(assignedRange.getTotalCounters())
+                        .addAllFlights(assignedRange.getFlights().stream().map(Flight::getCode).collect(Collectors.toList()))
+                        .build());
+            }
+            RepeatedPendingAssignmentResponse response = RepeatedPendingAssignmentResponse.newBuilder()
+                    .addAllPendingAssignments(pendingAssignmentResponses)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        }catch (IllegalArgumentException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException());
+        }
+
     }
 }
