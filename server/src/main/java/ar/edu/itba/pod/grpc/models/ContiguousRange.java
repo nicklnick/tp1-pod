@@ -14,7 +14,7 @@ public class ContiguousRange extends Range {
     }
 
     public synchronized void occupy(int amount) {
-        if (occupiedCounters + amount > getEnd() - getStart()) {
+        if (occupiedCounters + amount > (getEnd() - getStart()) + 1) {
             throw new IllegalArgumentException("Not enough space");
         }
         occupiedCounters += amount;

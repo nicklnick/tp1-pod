@@ -18,7 +18,11 @@ public interface SectorRepository {
 
     Map<Sector, List<ContiguousRange>> getContiguousRanges();
 
+    List<ContiguousRange> getContiguosRangesBySector(Sector sector);
+
     Map<Sector, List<AssignedRange>> getOnGoingAirlineRange();
+
+    List<AssignedRange> getOnGoingAirlineRangeBySector(Sector sector);
 
     Queue<AssignedRange> getPendingAirlineRange(Sector sector);
 

@@ -24,6 +24,8 @@ public interface SectorService {
 
     void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flight, int count);
 
+    List<Range> getRangesBySector(Sector sector, int from, int to);
+
     Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline);
 
     Map<Sector, List<AssignedRange>> listCounters(Optional<Sector> sector);

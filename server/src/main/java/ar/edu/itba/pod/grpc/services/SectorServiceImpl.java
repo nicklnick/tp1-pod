@@ -5,10 +5,7 @@ import ar.edu.itba.pod.grpc.repository.SectorRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.SectorRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 
 public class SectorServiceImpl implements SectorService {
     private static final SectorRepository sectorRepo = SectorRepositoryImpl.getInstance();
@@ -80,7 +77,55 @@ public class SectorServiceImpl implements SectorService {
         else if(count <= 0)
             throw new IllegalArgumentException("Count must be greater than 0");
 
-        sectorRepo.assignCounterRangeToAirline(sector, airline, flights, count);
+        sectorRepo.assignCounterRangeToAirline(sector, airline, new ArrayList<>(flights), count);
+    }
+
+    @Override
+    public List<Range> getRangesBySector(Sector sector, int from, int to) {
+        if( to < from)
+            throw new IllegalArgumentException("To cannot be lower than from");
+
+        List<AssignedRange> assignedRangeList = sectorRepo.getOnGoingAirlineRangeBySector(sector);
+        List<ContiguousRange> contiguousRangeList = sectorRepo.getContiguosRangesBySector(sector);
+
+        List<Range> ranges = new ArrayList<>();
+        contiguousRangeList.sort(Comparator.comparingInt(Range::getStart));
+        assignedRangeList.sort(Comparator.comparingInt(Range::getStart));
+
+
+
+        for (ContiguousRange contiguous:contiguousRangeList) {
+            int start = contiguous.getStart();
+            int end = contiguous.getEnd();
+
+            if((start >= from || end <= to) && start <= to && end >= from) {
+                int lastEndSeen = contiguous.getStart();
+                for (AssignedRange current:assignedRangeList) {
+                    if(current.getEnd() < contiguous.getStart())
+                        continue;
+                    if(current.getStart() >= contiguous.getEnd())
+                        break;
+
+                    if(current.getStart()-1 > lastEndSeen){
+                        int inc = lastEndSeen == contiguous.getStart() ? 0 : 1;
+                        ranges.add(new ContiguousRange(lastEndSeen+inc,current.getStart()-1,sector));
+                    }
+                    lastEndSeen = current.getEnd();
+                    ranges.add(current);
+                }
+
+                if (lastEndSeen == contiguous.getStart())
+                    ranges.add(new ContiguousRange(contiguous.getStart(), contiguous.getEnd(),sector));
+
+                else if (lastEndSeen + 1 < contiguous.getEnd())
+                    ranges.add(new ContiguousRange(lastEndSeen+1,contiguous.getEnd(),sector));
+            }
+        }
+
+        if(ranges.isEmpty())
+            throw new IllegalArgumentException("The provided range does not contain any counter");
+
+        return ranges;
     }
 
     @Override

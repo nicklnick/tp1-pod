@@ -96,8 +96,18 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
+    public List<ContiguousRange> getContiguosRangesBySector(Sector sector) {
+        return new ArrayList<>(ranges.getOrDefault(sector,new ArrayList<>()));
+    }
+
+    @Override
     public Map<Sector, List<AssignedRange>> getOnGoingAirlineRange() {
         return Map.copyOf(onGoingAirlineRange);
+    }
+
+    @Override
+    public List<AssignedRange> getOnGoingAirlineRangeBySector(Sector sector) {
+            return new ArrayList<>(onGoingAirlineRange.getOrDefault(sector, new ArrayList<>()));
     }
 
     @Override
@@ -124,7 +134,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     public synchronized void assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         // ---- casos de error ----
         // TODO: sacar estos chequeos y moverlos al service
-        boolean hasExpectedPassengers = false;
+        boolean hasExpectedPassengers = true;
         Map<Booking, Flight> expectedPassengers = passengerService.listExpectedPassengers();
 
         // chequeo si los vuelos indicados tienen pasajeros esperados
@@ -135,10 +145,14 @@ public class SectorRepositoryImpl implements SectorRepository {
                 if (!expectedPassengers.get(booking).getAirline().equals(airline)) {
                     throw new IllegalArgumentException("Flight does not belong to given airline");
                 }
-                continue;
+                if(flights.size() == 0)
+                    break;
+                else
+                    continue;
             }
             hasExpectedPassengers = false;
         }
+
 
         // si no hay pasajeros esperados para al menos uno de los vuelos indicados, se lanza una excepción
         if (!hasExpectedPassengers) {
@@ -170,7 +184,7 @@ public class SectorRepositoryImpl implements SectorRepository {
         // TODO: sacar el repo y poner el service cuando esté hecho
         // TODO: revisarlo
         Map<Airline, List<CheckIn>> airlineCheckIns = HistoryRepositoryImpl.getInstance().getAirlineCheckInHistory();
-        for (CheckIn checkIn : airlineCheckIns.get(airline)) {
+        for (CheckIn checkIn : airlineCheckIns.getOrDefault(airline,new ArrayList<>())) {
             for (Flight flight : flights) {
                 if (checkIn.getFlight().equals(flight)) {
                     throw new IllegalArgumentException("Flight check-in can't start more than once");
