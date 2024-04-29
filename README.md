@@ -17,7 +17,7 @@ For example:
 
     SFTP_USER=user@server
 
-***Note*** : The file name is ``.env``. If you use a different name it would not work.
+***Note*** : The file name is ``.env``. If you use a different name it will not work.
 
 ---
 Follow these instructions to deploy and run the server:
@@ -34,8 +34,10 @@ Follow these instructions to deploy and run the server:
 11. Run ``sh run-server.sh -Dport=[portNumber]``
 
 Alternatively, if you simply want to run the server locally or in a different environment you can follow steps ``7`` to ``9``, previously running:
-1. ``mvn clean package`` inside project´s root path.
+1. ``mvn clean package -DskipTests`` inside project´s root path.
 2. ``cd server/target/``
+
+Note that you have to skip tests when running mvn clean package because they do not work as a suite. If you wish to run tests you will have to do so individually for each test.
 
 In case of any problem in the previous steps, refer to section ``common problems`` at the end of the document.
 
@@ -43,9 +45,9 @@ In case of any problem in the previous steps, refer to section ``common problems
 
 # Executing Clients
 ## Prerequisites
-1. Run ```mvn clean package``` from project´s root path.
+1. Run ```mvn clean package -DskipTests``` from project´s root path.
 2. ``cd client/target/``
-3. ```tar -xzvf tpeq-g1-client-2024.1Q-bin.tar.gz```
+3. ```tar -xzvf tpe1-g1-client-2024.1Q-bin.tar.gz```
 4. ```sudo chmod u+x tpe1-g1-client-2024.1Q/*```
 5. ```cd tpe1-g1-client-2024.1Q```
 
@@ -68,11 +70,9 @@ Actions available:
     [addSector | addCounters | manifest]
 
 ### Add a Sector
-    sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy 
-    -Daction=addSector -Dsector=[sectorName]
+    sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=addSector -Dsector=[sectorName]
 ### Add a counter range
-    sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy 
-    -Daction=addCounters -Dsector=[sectorName] -Dcounters=[counterCount]
+    sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=addCounters -Dsector=[sectorName] -Dcounters=[counterCount]
 ### Add expected passengers
     sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=manifest
     -DinPath=[manifestPath]
@@ -103,8 +103,8 @@ Run ``sh counterClient.sh`` with the following options
 
 ### Assign Counter Range
     sh counterClient.sh -DserverAddress=xx.xx.xx.xx:yyyy
-    -Daction=assignCounters -Dsector=C -Dflights=[fligh1|fligh2|...]
-    -Dairline=[airlineName]-DcounterCount=[countVal]
+    -Daction=assignCounters -Dsector=[sectorName] -Dflights=[fligh1|fligh2|...]
+    -Dairline=[airlineName] -DcounterCount=[countVal]
 
 ### Free Counter Range
     sh counterClient.sh -DserverAddress=xx.xx.xx.xx:yyyy
