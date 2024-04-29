@@ -191,7 +191,7 @@ public class SectorRepositoryImpl implements SectorRepository {
 
         readWriteLock.writeLock().lock();
         try {
-            rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
+            rangeToFree.get().getCountersMap().keySet().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
             onGoingAirlineRange.get(sector).remove(rangeToFree.get());
             for (ContiguousRange contiguousRange : ranges.get(sector)) {
                 if (contiguousRange.getStart() <= rangeId && contiguousRange.getEnd() >= rangeId) {
@@ -231,7 +231,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
-    public synchronized Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
+    public Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -412,7 +412,10 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     private AssignedRange finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
         final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), sector, airline, count);
-        assignedRange.getCounters().addAll(countersToAdd);
+        for(Counter counter : countersToAdd) {
+            assignedRange.addCounter(counter);
+        }
+
         assignedRange.getFlights().addAll(flights);
         for (Flight flight : flights) {
             checkInService.addAvailableRangeForFlight(flight, assignedRange);
