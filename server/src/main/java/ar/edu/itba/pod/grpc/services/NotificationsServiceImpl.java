@@ -52,8 +52,8 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public List<NotificationData> getNotificationHistory(Airline airline) throws IllegalArgumentException {
-        if (!isRegisteredForNotifications(airline)) {
-            throw new IllegalArgumentException("Airline is not registered for notifications");
+        if (!passengerService.existsExpectedPassengerFromAirline(airline)) {
+            throw new IllegalArgumentException("Not expecting passengers from given airline");
         }
         return notificationRepository.getNotificationsHistory(airline);
     }
