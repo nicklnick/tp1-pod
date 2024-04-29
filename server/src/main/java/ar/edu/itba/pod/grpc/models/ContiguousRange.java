@@ -1,5 +1,8 @@
 package ar.edu.itba.pod.grpc.models;
 
+import ar.edu.itba.pod.grpc.strategies.ContiguousRangeStrategyImpl;
+import ar.edu.itba.pod.grpc.strategies.CounterMsgBuildStrategy;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,5 +41,10 @@ public class ContiguousRange extends Range {
 
     public int getOccupied() {
         return occupiedCounters;
+    }
+
+    @Override
+    public CounterMsgBuildStrategy getCounterMsgBuilderStrategy() {
+        return new ContiguousRangeStrategyImpl();
     }
 }

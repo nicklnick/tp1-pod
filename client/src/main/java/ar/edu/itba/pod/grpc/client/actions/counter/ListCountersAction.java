@@ -10,6 +10,7 @@ import ar.edu.itba.pod.grpc.counter.CounterServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -48,10 +49,11 @@ public class ListCountersAction extends Action {
                     .build();
 
             final CounterResponse response = stub.listCounters(request);
-            response.getCountersList().sort(Comparator.comparingInt(c -> c.getCounterRange().getFrom()));
+            List<CounterMsg> sortedList = new ArrayList<>(response.getCountersList());
+            sortedList.sort(Comparator.comparingInt(c -> c.getCounterRange().getFrom()));
 
             System.out.print(buildResponseHeader());
-            response.getCountersList().forEach(counter -> System.out.println(buildResponseEntry(counter)));
+            sortedList.forEach(counter -> System.out.println(buildResponseEntry(counter)));
         } catch (StatusRuntimeException e) {
             throw new IllegalStateException(USAGE_MESSAGE);
         } finally {

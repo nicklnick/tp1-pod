@@ -1,5 +1,8 @@
 package ar.edu.itba.pod.grpc.models;
 
+import ar.edu.itba.pod.grpc.strategies.AssignedRangeStrategyImpl;
+import ar.edu.itba.pod.grpc.strategies.CounterMsgBuildStrategy;
+
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -66,5 +69,10 @@ public class AssignedRange extends Range {
     }
     public Map<Counter, Integer> getCountersMap() {
         return counters;
+    }
+
+    @Override
+    public CounterMsgBuildStrategy getCounterMsgBuilderStrategy() {
+        return new AssignedRangeStrategyImpl();
     }
 }

@@ -25,9 +25,9 @@ message CounterRequest {
 
 message CounterMsg {
   Range counter_range = 1;
-  string airline = 2;
+  optional string airline = 2;
   repeated string flights = 3;
-  int32 people_in_queue = 4;
+  optional int32 people_in_queue = 4;
 }
 
 message CounterResponse {

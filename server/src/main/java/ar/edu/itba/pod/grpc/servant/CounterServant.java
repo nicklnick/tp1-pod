@@ -54,8 +54,19 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void listCounters(CounterRequest request, StreamObserver<CounterResponse> responseObserver) {
+        final Sector sector = new Sector(request.getSectorName());
 
+        try {
+            final List<ar.edu.itba.pod.grpc.models.Range> ranges = sectorService.getRangesBySector(sector, request.getCounterRange().getFrom(), request.getCounterRange().getTo());
+            final CounterResponse response = CounterResponse.newBuilder()
+                    .addAllCounters(ranges.stream().map(range -> range.getCounterMsgBuilderStrategy().buildCounterMsg(range,CounterMsg.newBuilder())).collect(Collectors.toCollection(ArrayList::new)))
+                    .build();
 
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException());
+        }
     }
 
     @Override

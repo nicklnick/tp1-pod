@@ -1,5 +1,7 @@
 package ar.edu.itba.pod.grpc.models;
 
+import ar.edu.itba.pod.grpc.strategies.CounterMsgBuildStrategy;
+
 public abstract class Range {
     private final int start;
     private final int end;
@@ -29,5 +31,9 @@ public abstract class Range {
     }
     public Sector getSector() {
         return sector;
+    }
+
+    public CounterMsgBuildStrategy getCounterMsgBuilderStrategy(){
+        throw new RuntimeException("Not implemented");
     }
 }
