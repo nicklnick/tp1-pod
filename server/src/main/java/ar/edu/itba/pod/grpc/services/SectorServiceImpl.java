@@ -97,12 +97,14 @@ public class SectorServiceImpl implements SectorService {
             if (!hasExpectedPassengers)
                 throw new IllegalArgumentException("Not expecting any passengers for at least one of the given flights");
 
-            // Check if airline has already been assigned to a range or is pending assignment
-            for (AssignedRange assignedRange : sectorRepo.getOnGoingAirlineRange().get(sector)) {
-                if (assignedRange.getAirline().equals(airline)) {
-                    for (Flight flight : flights) {
-                        if (assignedRange.getFlights().contains(flight)) {
-                            throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
+            // Check if airline flight has already been assigned to a range or is pending assignment
+            for(Sector auxSector : sectorRepo.getOnGoingAirlineRange().keySet() ) {
+                for (AssignedRange assignedRange : sectorRepo.getOnGoingAirlineRange().get(auxSector)) {
+                    if (assignedRange.getAirline().equals(airline)) {
+                        for (Flight flight : flights) {
+                            if (assignedRange.getFlights().contains(flight)) {
+                                throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
+                            }
                         }
                     }
                 }
