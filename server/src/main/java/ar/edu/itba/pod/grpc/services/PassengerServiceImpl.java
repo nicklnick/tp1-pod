@@ -8,6 +8,8 @@ import ar.edu.itba.pod.grpc.repository.PassengerRepositoryImpl;
 import ar.edu.itba.pod.grpc.repository.interfaces.PassengerRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class PassengerServiceImpl implements PassengerService {
@@ -60,5 +62,31 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public boolean existsExpectedPassengerFromAirline(Airline airline) {
         return passengerRepo.existsExpectedPassengerFromAirline(airline);
+    }
+
+    @Override
+    public boolean eachFlightIsExpectingAtLeastOnePassenger(Airline airline, List<Flight> flights) {
+        boolean hasExpectedPassengers = false;
+        Map<Booking, Flight> expectedPassengers = passengerRepo.listExpectedPassengers();
+        List<Flight> assignedFlights = new ArrayList<>(flights);
+
+        for (Booking booking : expectedPassengers.keySet()) {
+            if (assignedFlights.contains(expectedPassengers.get(booking))) {
+                assignedFlights.remove(expectedPassengers.get(booking));
+                hasExpectedPassengers = true;
+
+                if (!expectedPassengers.get(booking).getAirline().equals(airline))
+                    throw new IllegalArgumentException("Flight does not belong to given airline");
+
+                if(assignedFlights.isEmpty())
+                    break;
+                else
+                    continue;
+            }
+
+            hasExpectedPassengers = false;
+        }
+
+        return hasExpectedPassengers;
     }
 }

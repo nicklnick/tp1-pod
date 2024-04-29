@@ -6,7 +6,6 @@ import ar.edu.itba.pod.grpc.repository.interfaces.HistoryRepository;
 import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class HistoryServiceImpl implements HistoryService {
@@ -53,5 +52,21 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     public void addAssignedRange(AssignedRange assignedRange) {
         historyRepo.addAssignedRange(assignedRange);
+    }
+
+    @Override
+    public boolean airlineHasStartedCheckInOnFlights(Airline airline, List<Flight> flights) {
+        List<CheckIn> airlineCheckIns = historyRepo.getAirlineCheckInHistory(airline);
+
+        for (CheckIn checkIn : airlineCheckIns) {
+            for (Flight flight : flights) {
+                if (checkIn.getFlight().equals(flight)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
     }
 }

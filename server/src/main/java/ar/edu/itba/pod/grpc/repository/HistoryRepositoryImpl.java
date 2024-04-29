@@ -3,7 +3,12 @@ package ar.edu.itba.pod.grpc.repository;
 import ar.edu.itba.pod.grpc.models.*;
 import ar.edu.itba.pod.grpc.repository.interfaces.HistoryRepository;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class HistoryRepositoryImpl implements HistoryRepository {
 
@@ -14,6 +19,8 @@ public class HistoryRepositoryImpl implements HistoryRepository {
     private final Map<Airline, List<CheckIn>> airlineCheckInHistory = new HashMap<>();
     private final Map<Counter, List<CheckIn>> counterCheckInHistory = new HashMap<>();
     private final List<AssignedRange> assignedRangesHistory = new LinkedList<>();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
 
     private HistoryRepositoryImpl() {
     }
@@ -26,76 +33,143 @@ public class HistoryRepositoryImpl implements HistoryRepository {
     }
 
     @Override
-    public synchronized void addCheckIn(CheckIn checkIn) {
-        sectorCheckInHistory.putIfAbsent(checkIn.getSector(), new LinkedList<>());
-        sectorCheckInHistory.get(checkIn.getSector()).add(checkIn);
+    public void addCheckIn(CheckIn checkIn) {
+        readWriteLock.writeLock().lock();
 
-        airlineCheckInHistory.putIfAbsent(checkIn.getAirline(), new LinkedList<>());
-        airlineCheckInHistory.get(checkIn.getAirline()).add(checkIn);
+        try {
+            sectorCheckInHistory.putIfAbsent(checkIn.getSector(), new LinkedList<>());
+            sectorCheckInHistory.get(checkIn.getSector()).add(checkIn);
 
-        counterCheckInHistory.putIfAbsent(checkIn.getCounter(), new LinkedList<>());
-        counterCheckInHistory.get(checkIn.getCounter()).add(checkIn);
+            airlineCheckInHistory.putIfAbsent(checkIn.getAirline(), new LinkedList<>());
+            airlineCheckInHistory.get(checkIn.getAirline()).add(checkIn);
 
-        passengerCheckInHistory.put(checkIn.getBooking(), checkIn);
+            counterCheckInHistory.putIfAbsent(checkIn.getCounter(), new LinkedList<>());
+            counterCheckInHistory.get(checkIn.getCounter()).add(checkIn);
+
+            passengerCheckInHistory.put(checkIn.getBooking(), checkIn);
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     @Override
-    public synchronized Map<Airline, List<CheckIn>> getAirlineCheckInHistory() {
-        return Map.copyOf(airlineCheckInHistory);
+    public Map<Airline, List<CheckIn>> getAirlineCheckInHistory() {
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(airlineCheckInHistory);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
-    public synchronized Map<Sector, List<CheckIn>> getSectorCheckInHistory() {
-        return Map.copyOf(sectorCheckInHistory);
+    public Map<Sector, List<CheckIn>> getSectorCheckInHistory() {
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(sectorCheckInHistory);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<CheckIn> getSectorCheckInHistory(Sector sector) {
-        return List.copyOf(sectorCheckInHistory.getOrDefault(sector, new LinkedList<>()));
+        readWriteLock.readLock().lock();
+        try {
+            return List.copyOf(sectorCheckInHistory.getOrDefault(sector, new LinkedList<>()));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<CheckIn> getAirlineCheckInHistory(Airline airline) {
-        return List.copyOf(airlineCheckInHistory.getOrDefault(airline, new LinkedList<>()));
+        readWriteLock.readLock().lock();
+        try {
+            return List.copyOf(airlineCheckInHistory.getOrDefault(airline, new LinkedList<>()));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public Map<Counter, List<CheckIn>> getCounterCheckInHistory() {
-        return Map.copyOf(counterCheckInHistory);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(counterCheckInHistory);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<CheckIn> getCounterCheckInHistory(Counter counter) {
-        return List.copyOf(counterCheckInHistory.getOrDefault(counter, new LinkedList<>()));
+        readWriteLock.readLock().lock();
+        try {
+            return List.copyOf(counterCheckInHistory.getOrDefault(counter, new LinkedList<>()));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
+
     @Override
     public boolean containsCheckInForSector(Sector sector) {
-        return sectorCheckInHistory.containsKey(sector);
+        readWriteLock.readLock().lock();
+        try {
+            return  sectorCheckInHistory.containsKey(sector);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public boolean passangerDidCheckin(Booking passenger) {
-        return passengerCheckInHistory.containsKey(passenger);
+        readWriteLock.readLock().lock();
+        try {
+            return passengerCheckInHistory.containsKey(passenger);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public CheckIn getPassengerCheckIn(Booking passenger) {
-        return passengerCheckInHistory.getOrDefault(passenger, null);
+        readWriteLock.readLock().lock();
+        try {
+            return passengerCheckInHistory.getOrDefault(passenger, null);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<CheckIn> getAllCheckIns() {
-        return passengerCheckInHistory.values().stream().toList();
+        readWriteLock.readLock().lock();
+        try {
+            return passengerCheckInHistory.values().stream().toList();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<AssignedRange> getAssignedRangesHistory() {
-        return List.copyOf(assignedRangesHistory);
+        readWriteLock.readLock().lock();
+        try {
+            return List.copyOf(assignedRangesHistory);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public void addAssignedRange(AssignedRange assignedRange) {
-        assignedRangesHistory.add(assignedRange);
+        readWriteLock.writeLock().lock();
+        try {
+            assignedRangesHistory.add(assignedRange);
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
 }

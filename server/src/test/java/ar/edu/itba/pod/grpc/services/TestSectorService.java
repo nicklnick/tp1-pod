@@ -1,7 +1,9 @@
 package ar.edu.itba.pod.grpc.services;
 
 import ar.edu.itba.pod.grpc.models.*;
+import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
+import ar.edu.itba.pod.grpc.utils.Triple;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,6 +14,7 @@ import java.util.Map;
 
 public class TestSectorService {
     private final SectorService sectorService = new SectorServiceImpl();
+    private final PassengerService passengerService = new PassengerServiceImpl();
 
     @Test
     public void addSectors() {
@@ -92,6 +95,22 @@ public class TestSectorService {
         Sector sectorA = new Sector("A");
         Sector sectorB = new Sector("B");
 
+        List<Triple<String, String, String>> passengersData = new ArrayList<>();
+        passengersData.add(new Triple<>("X100", "AA100", "AirlineA"));
+        passengersData.add(new Triple<>("X101", "AA101", "AirlineA"));
+        passengersData.add(new Triple<>("X102", "AA102", "AirlineA"));
+        passengersData.add(new Triple<>("Y200", "BB200", "AirlineB"));
+        passengersData.add(new Triple<>("Y201", "BB201", "AirlineB"));
+
+        // Create entities
+        for (Triple<String, String, String> passengerData : passengersData) {
+            Booking booking = new Booking(passengerData.getFirst());
+            Airline airline = new Airline(passengerData.getThird());
+            Flight flight = new Flight(airline, passengerData.getSecond());
+
+            passengerService.addExpectedPassenger(booking, flight);
+        }
+
         Airline airlineA = new Airline("AirlineA");
 
         List<Flight> airlineAFlights = new ArrayList<>();
@@ -106,9 +125,6 @@ public class TestSectorService {
         airlineBFlights.add(new Flight(airlineB, "BB201"));
 
         sectorService.assignCounterRangeToAirline(sectorA, airlineA, airlineAFlights, 3);
-        sectorService.assignCounterRangeToAirline(sectorB, airlineB, airlineAFlights, 3);
-
-        // TODO: Check if counters are being assigned properly
-
+        sectorService.assignCounterRangeToAirline(sectorB, airlineB, airlineBFlights, 2);
     }
 }

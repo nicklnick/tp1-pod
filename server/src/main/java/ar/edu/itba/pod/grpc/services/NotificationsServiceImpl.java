@@ -14,24 +14,22 @@ import java.util.concurrent.BlockingQueue;
 public class NotificationsServiceImpl implements NotificationsService {
     private static final NotificationsRepository notificationRepository = NotificationsRepositoryImpl.getInstance();
     private final PassengerService passengerService = new PassengerServiceImpl();
-    private final Object notificationsLock = "notificationsLock";
+
     @Override
     public BlockingQueue<NotificationData> registerForNotifications(Airline airline) {
-        if (notificationRepository.isRegisteredForNotifications(airline)) {
+        if (isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is already registered for notifications");
         }
 
         BlockingQueue<NotificationData> notificationQueue;
-        synchronized (notificationsLock) {
-            notificationQueue = notificationRepository.registerForNotifications(airline);
-            notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_REGISTER, airline));
-        }
+        notificationQueue = notificationRepository.registerForNotifications(airline);
+        notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_REGISTER, airline));
         return notificationQueue;
     }
 
     @Override
     public void unregisterForNotifications(Airline airline) throws IllegalArgumentException {
-        if (!notificationRepository.isRegisteredForNotifications(airline)) {
+        if (!isRegisteredForNotifications(airline)) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
 
@@ -39,27 +37,29 @@ public class NotificationsServiceImpl implements NotificationsService {
             throw new IllegalArgumentException("There are no expected passengers waiting for this airline");
         }
 
-        synchronized (notificationsLock) {
-            notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_UNREGISTER, airline));
-            notificationRepository.unregisterForNotifications(airline);
-        }
+        notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_UNREGISTER, airline));
+        notificationRepository.unregisterForNotifications(airline);
     }
 
     @Override
     public void sendNotification(NotificationData notificationData) throws IllegalArgumentException {
-        if (!notificationRepository.isRegisteredForNotifications(notificationData.getAirline())) {
+        if (!isRegisteredForNotifications(notificationData.getAirline())) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
-        synchronized (notificationsLock) {
-            notificationRepository.sendNotification(notificationData);
-        }
+
+        notificationRepository.sendNotification(notificationData);
     }
 
     @Override
     public List<NotificationData> getNotificationHistory(Airline airline) throws IllegalArgumentException {
-        if (!notificationRepository.isRegisteredForNotifications(airline)) {
-            throw new IllegalArgumentException("Airline is not registered for notifications");
+        if (!passengerService.existsExpectedPassengerFromAirline(airline)) {
+            throw new IllegalArgumentException("Not expecting passengers from given airline");
         }
         return notificationRepository.getNotificationsHistory(airline);
+    }
+
+    @Override
+    public boolean isRegisteredForNotifications(Airline airline) {
+        return notificationRepository.isRegisteredForNotifications(airline);
     }
 }

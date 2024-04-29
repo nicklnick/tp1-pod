@@ -10,5 +10,7 @@ public interface NotificationsService {
     BlockingQueue<NotificationData> registerForNotifications(Airline airline) throws IllegalArgumentException;
     void unregisterForNotifications(Airline airline) throws IllegalArgumentException;
     void sendNotification(NotificationData notificationData);
+
+    boolean isRegisteredForNotifications(Airline airline);
     List<NotificationData> getNotificationHistory(Airline airline);
 }

@@ -10,10 +10,10 @@ import ar.edu.itba.pod.grpc.services.interfaces.CheckInService;
 import ar.edu.itba.pod.grpc.services.interfaces.HistoryService;
 import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
-import com.google.protobuf.Empty;
 
-import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.IntStream;
 
 public class SectorRepositoryImpl implements SectorRepository {
@@ -29,6 +29,7 @@ public class SectorRepositoryImpl implements SectorRepository {
     private final Map<Sector, List<ContiguousRange>> ranges = new HashMap<>();
     private final Map<Sector, List<AssignedRange>> onGoingAirlineRange = new HashMap<>();
     private final Map<Sector, Queue<AssignedRange>> pendingAirlineRange = new HashMap<>();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private Integer counterId = 1;
 
     private SectorRepositoryImpl() {
@@ -42,59 +43,81 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     @Override
-    public synchronized void addSector(Sector sector) {
-        countersBySector.put(sector, new ArrayList<>());
-        ranges.put(sector, new ArrayList<>());
-        onGoingAirlineRange.put(sector, new ArrayList<>());
-        pendingAirlineRange.put(sector, new LinkedList<>());
+    public void addSector(Sector sector) {
+        readWriteLock.writeLock().lock();
+        try {
+            countersBySector.put(sector, new ArrayList<>());
+            ranges.put(sector, new ArrayList<>());
+            onGoingAirlineRange.put(sector, new ArrayList<>());
+            pendingAirlineRange.put(sector, new LinkedList<>());
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     @Override
     public synchronized Map<Sector, List<Counter>> listSectors() {
-        return Map.copyOf(countersBySector);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(countersBySector);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public boolean containsSector(Sector sector) {
-        return countersBySector.containsKey(sector);
+        readWriteLock.readLock().lock();
+        try {
+            return countersBySector.containsKey(sector);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public synchronized ContiguousRange addCountersToSector(Sector sector, int count) {
-        int trueCount = count;
-        int newCounterId = counterId;
-        int occupiedCounters = 0;
-        List<Counter> currentCounters = null;
+        ContiguousRange contiguousRange;
 
-        // check if there is a range that ends in the previous counter
-        if (ranges.containsKey(sector) && !ranges.get(sector).isEmpty()) {
-            ContiguousRange oldRange = ranges.get(sector).get(ranges.get(sector).size() - 1);
-            if (oldRange.getEnd() == counterId - 1) {
-                occupiedCounters = oldRange.getOccupied();
-                currentCounters = oldRange.getCounters();
-                ranges.get(sector).remove(oldRange);
-                newCounterId = oldRange.getStart();
-                count += oldRange.getEnd() - oldRange.getStart() + 1;
+        readWriteLock.writeLock().lock();
+        try {
+            int trueCount = count;
+            int newCounterId = counterId;
+            int occupiedCounters = 0;
+            List<Counter> currentCounters = null;
+
+            // Check if there is a range that ends in the previous counter
+            if (ranges.containsKey(sector) && !ranges.get(sector).isEmpty()) {
+                ContiguousRange oldRange = ranges.get(sector).get(ranges.get(sector).size() - 1);
+                if (oldRange.getEnd() == counterId - 1) {
+                    occupiedCounters = oldRange.getOccupied();
+                    currentCounters = oldRange.getCounters();
+                    ranges.get(sector).remove(oldRange);
+                    newCounterId = oldRange.getStart();
+                    count += oldRange.getEnd() - oldRange.getStart() + 1;
+                }
             }
-        }
 
-        // create the new range
-        final ContiguousRange contiguousRange = new ContiguousRange(newCounterId, newCounterId + count - 1, sector);
-        contiguousRange.occupy(occupiedCounters);
-        contiguousRange.addAll(currentCounters);
-        ranges.get(sector).add(contiguousRange);
+            // Create the new range
+            contiguousRange = new ContiguousRange(newCounterId, newCounterId + count - 1, sector);
+            contiguousRange.occupy(occupiedCounters);
+            contiguousRange.addAll(currentCounters);
+            ranges.get(sector).add(contiguousRange);
 
-        // add the new counters
-        for (int i = 0; i < trueCount; i++) {
-            Counter counterToAdd = new Counter(counterId, CounterStatus.PENDING_ASSIGNATION);
-            contiguousRange.add(counterToAdd);
-            totalCounters.add(counterToAdd);
-            countersBySector.get(sector).add(counterToAdd);
-            counterId++;
+            // Add the new counters
+            for (int i = 0; i < trueCount; i++) {
+                Counter counterToAdd = new Counter(counterId, CounterStatus.PENDING_ASSIGNATION);
+                contiguousRange.add(counterToAdd);
+                totalCounters.add(counterToAdd);
+                countersBySector.get(sector).add(counterToAdd);
+                counterId++;
+            }
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
 
         Optional<AssignedRange> result = assignPendingRanges(sector);
-        if (result.isPresent()) {
+        if (result.isPresent() && notificationsService.isRegisteredForNotifications(result.get().getAirline())) {
             NotificationData notification = NotificationData.newBuilder()
                     .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED)
                     .setCounterRange(result.get())
@@ -111,65 +134,97 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     @Override
     public Map<Sector, List<ContiguousRange>> getContiguousRanges() {
-        return Map.copyOf(ranges);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(ranges);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<ContiguousRange> getContiguosRangesBySector(Sector sector) {
-        return new ArrayList<>(ranges.getOrDefault(sector,new ArrayList<>()));
+        readWriteLock.readLock().lock();
+        try {
+            return new ArrayList<>(ranges.getOrDefault(sector, new ArrayList<>()));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public Map<Sector, List<AssignedRange>> getOnGoingAirlineRange() {
-        return Map.copyOf(onGoingAirlineRange);
+        readWriteLock.readLock().lock();
+        try {
+            return Map.copyOf(onGoingAirlineRange);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<AssignedRange> getOnGoingAirlineRangeBySector(Sector sector) {
+        readWriteLock.readLock().lock();
+        try {
             return new ArrayList<>(onGoingAirlineRange.getOrDefault(sector, new ArrayList<>()));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
-    public synchronized Queue<AssignedRange> getPendingAirlineRange(Sector sector) {
-        return pendingAirlineRange.get(sector);
+    public Queue<AssignedRange> getPendingAirlineRange(Sector sector) {
+        readWriteLock.readLock().lock();
+        try {
+            return pendingAirlineRange.get(sector);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public Optional<AssignedRange> freeAssignedRange(Sector sector, Airline airline, int rangeId) {
         final Optional<AssignedRange> rangeToFree = searchAssignedRangeForAirline(onGoingAirlineRange.get(sector), rangeId, airline);
-        if(rangeToFree.isEmpty())
+
+        if (rangeToFree.isEmpty())
             throw new IllegalArgumentException("Assigned range not found for given airline");
 
-        rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
-        onGoingAirlineRange.get(sector).remove(rangeToFree.get());
-        for (ContiguousRange contiguousRange : ranges.get(sector)) {
-            if (contiguousRange.getStart() <= rangeId && contiguousRange.getEnd() >= rangeId) {
-                contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
+        readWriteLock.writeLock().lock();
+        try {
+            rangeToFree.get().getCounters().forEach(counter -> counter.setStatus(CounterStatus.PENDING_ASSIGNATION));
+            onGoingAirlineRange.get(sector).remove(rangeToFree.get());
+            for (ContiguousRange contiguousRange : ranges.get(sector)) {
+                if (contiguousRange.getStart() <= rangeId && contiguousRange.getEnd() >= rangeId) {
+                    contiguousRange.occupy(-rangeToFree.get().getTotalCounters());
+                }
             }
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
 
-        NotificationData freedRangeNotification = NotificationData.newBuilder()
-                .setType(NotificationType.NOTIFICATION_DISMISSED_COUNTERS)
-                .setSector(sector)
-                .setFlights(rangeToFree.get().getFlights())
-                .setPendingsAhead(getPendingAssignmentsAheadOf(sector, rangeToFree.get()))
-                .build();
-
-        notificationsService.sendNotification(freedRangeNotification);
-
-
-        //luego de liberar se tiene que asignar pendientes
-        Optional<AssignedRange> result = assignPendingRanges(sector);
-        if (result.isPresent()) {
-            NotificationData notification = NotificationData.newBuilder()
-                    .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED)
-                    .setCounterRange(result.get())
+        if (notificationsService.isRegisteredForNotifications(airline)) {
+            NotificationData freedRangeNotification = NotificationData.newBuilder()
+                    .setType(NotificationType.NOTIFICATION_DISMISSED_COUNTERS)
                     .setSector(sector)
-                    .setFlights(result.get().getFlights())
-                    .setPendingsAhead(getPendingAssignmentsAheadOf(sector, result.get()))
+                    .setFlights(rangeToFree.get().getFlights())
+                    .setPendingsAhead(getPendingAssignmentsAheadOf(sector, rangeToFree.get()))
                     .build();
 
-            notificationsService.sendNotification(notification);
+            notificationsService.sendNotification(freedRangeNotification);
+
+            // Assign pending ranges after freeing previous assignments
+            Optional<AssignedRange> result = assignPendingRanges(sector);
+            if (result.isPresent()) {
+                NotificationData notification = NotificationData.newBuilder()
+                        .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING_CHANGED)
+                        .setCounterRange(result.get())
+                        .setSector(sector)
+                        .setFlights(result.get().getFlights())
+                        .setPendingsAhead(getPendingAssignmentsAheadOf(sector, result.get()))
+                        .build();
+
+                notificationsService.sendNotification(notification);
+            }
         }
 
         return rangeToFree;
@@ -177,120 +232,152 @@ public class SectorRepositoryImpl implements SectorRepository {
 
     @Override
     public synchronized Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
-        // quiero ver si en rangos contiguos del sector si hay espacio contiguo para una aerolinea
-        List<ContiguousRange> contiguousRangeList = ranges.get(sector);
-        // chequeo cada rango contiguo para ver si tiene lugar
-        for (ContiguousRange range : contiguousRangeList) {
-            int totalCounters = range.getCounters().size();
-            if ((totalCounters - range.getOccupied()) >= count) {
-                List<Counter> countersToAdd = new ArrayList<>();
-                int counterCount = 0;
-                // checkeo la lista de contadores de cada rango contiguo que tenga espacio suficiente en su totalidad
-                for (Counter counter : range.getCounters()) {
-                    // Si el mostrador esta pending significa que esta libre para ser asignado
-                    if (counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
-                        countersToAdd.add(counter);
-                        counterCount++;
-                    }
-                    // si no hay espacio contiguo (mostradores pending), se limpia la lista y se resetea el contador
-                    else {
-                        countersToAdd.clear();
-                        counterCount = 0;
-                    }
-                    if (counterCount == count) {
-                        break;
-                    }
-                }
-                // si la cantidad de contadores a agregar es igual a la cantidad de contadores necesarios,
-                // se cambia el estado de los contadores y se agrega el rango asignado
-                if (countersToAdd.size() == count) {
-                    countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY_FOR_CHECKIN));
-                    final AssignedRange result = finishSetupOfAssignedRange(count, airline, countersToAdd, sector, flights);
-                    range.occupy(count);
+        readWriteLock.writeLock().lock();
 
-                    return Optional.of(result);
+        try {
+            // Check if there is any contiguous range with room for another airline
+            List<ContiguousRange> contiguousRangeList = ranges.get(sector);
+            for (ContiguousRange range : contiguousRangeList) {
+                int totalCounters = range.getCounters().size();
+                if ((totalCounters - range.getOccupied()) >= count) {
+                    List<Counter> countersToAdd = new ArrayList<>();
+                    int counterCount = 0;
+
+                    // Check counter list for contiguous ranges that have sufficient space
+                    for (Counter counter : range.getCounters()) {
+                        if (counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
+                            countersToAdd.add(counter);
+                            counterCount++;
+                        }
+                        // If there are no contiguous empty counters, empty the list and reset the counters
+                        else {
+                            countersToAdd.clear();
+                            counterCount = 0;
+                        }
+                        if (counterCount == count) {
+                            break;
+                        }
+                    }
+
+                    // If counters quantity equals required counters then change counters status and add assigned range
+                    if (countersToAdd.size() == count) {
+                        countersToAdd.forEach(counter -> counter.setStatus(CounterStatus.READY_FOR_CHECKIN));
+                        final AssignedRange result = finishSetupOfAssignedRange(count, airline, countersToAdd, sector, flights);
+                        range.occupy(count);
+
+                        return Optional.of(result);
+                    }
                 }
             }
+
+            return Optional.empty();
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
 
-        return Optional.empty();
     }
 
-    // TODO: que onda esto? no usa nada de la clase repository
     @Override
     public Optional<AssignedRange> searchAssignedRangeForAirline(List<AssignedRange> assignedRanges, int rangeId, Airline airline) {
-        for (AssignedRange assignedRange : assignedRanges) {
-            if (assignedRange.getStart() <= rangeId && assignedRange.getEnd() >= rangeId && airline.equals(assignedRange.getAirline())) {
-                return Optional.of(assignedRange);
-            }
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector){
-        List<AssignedRange> assignedRanges = onGoingAirlineRange.get(sector);
-        return searchAssignedRangeForAirline(assignedRanges,rangeId,airline);
-    }
-    @Override
-    public Map<Sector, List<AssignedRange>> listCounters() {
-        final Map<Sector, List<AssignedRange>> result = new HashMap<>();
-        // Recorro los sectores y agrego los rangos asignados a la aerolinea
-        for(Sector sector : onGoingAirlineRange.keySet()) {
-            result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
-        }
-
-        // Recorro los sectores y agrego los counters no asignados
-        for(Sector sector : countersBySector.keySet()) {
-            final List<Counter> unassignedCounters = new LinkedList<>();
-            for(Counter counter : countersBySector.get(sector)) {
-                if(counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
-                    unassignedCounters.add(counter);
+        readWriteLock.readLock().lock();
+        try {
+            for (AssignedRange assignedRange : assignedRanges) {
+                if (assignedRange.getStart() <= rangeId && assignedRange.getEnd() >= rangeId && airline.equals(assignedRange.getAirline())) {
+                    return Optional.of(assignedRange);
                 }
             }
-
-            if(!unassignedCounters.isEmpty()) {
-                final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
-                result.put(sector, unassignedRanges);
-            }
+            return Optional.empty();
+        } finally {
+            readWriteLock.readLock().unlock();
         }
+    }
 
-        return result;
+    @Override
+    public Optional<AssignedRange> searchAssignedRangeForAirlineBySector(int rangeId, Airline airline, Sector sector) {
+        List<AssignedRange> assignedRanges = onGoingAirlineRange.get(sector);
+        return searchAssignedRangeForAirline(assignedRanges, rangeId, airline);
+    }
+
+    @Override
+    public Map<Sector, List<AssignedRange>> listCounters() {
+        readWriteLock.readLock().lock();
+        try {
+            final Map<Sector, List<AssignedRange>> result = new HashMap<>();
+
+            // Add assigned ranges to airline
+            for (Sector sector : onGoingAirlineRange.keySet()) {
+                result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
+            }
+
+            // Add not assigned counters
+            for (Sector sector : countersBySector.keySet()) {
+                final List<Counter> unassignedCounters = new LinkedList<>();
+                for (Counter counter : countersBySector.get(sector)) {
+                    if (counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
+                        unassignedCounters.add(counter);
+                    }
+                }
+
+                if (!unassignedCounters.isEmpty()) {
+                    final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
+                    result.put(sector, unassignedRanges);
+                }
+            }
+            return result;
+
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public Map<Sector, List<AssignedRange>> listCounters(Sector sector) {
-        final Map<Sector, List<AssignedRange>> result = new HashMap<>();
-        result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
+        readWriteLock.readLock().lock();
+        try {
+            final Map<Sector, List<AssignedRange>> result = new HashMap<>();
+            result.put(sector, new ArrayList<>(onGoingAirlineRange.get(sector)));
 
-        final List<Counter> unassignedCounters = new LinkedList<>();
-        for(Counter counter : countersBySector.get(sector)) {
-            if(counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
-                unassignedCounters.add(counter);
+            final List<Counter> unassignedCounters = new LinkedList<>();
+            for (Counter counter : countersBySector.get(sector)) {
+                if (counter.getStatus() == CounterStatus.PENDING_ASSIGNATION) {
+                    unassignedCounters.add(counter);
+                }
             }
-        }
 
-        if(!unassignedCounters.isEmpty()) {
-            final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
-            result.put(sector, unassignedRanges);
-        }
+            if (!unassignedCounters.isEmpty()) {
+                final List<AssignedRange> unassignedRanges = obtainRanges(unassignedCounters);
+                result.put(sector, unassignedRanges);
+            }
 
-        return result;
+            return result;
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public int getPendingAssignmentsAheadOf(Sector sector, AssignedRange range) {
-        final Queue<AssignedRange> queue = pendingAirlineRange.get(sector);
+        readWriteLock.readLock().lock();
+        try {
+            final Queue<AssignedRange> queue = pendingAirlineRange.get(sector);
 
-        return IntStream.range(0, queue.size())
-                .filter(i -> queue.toArray()[i].equals(range))
-                .findFirst()
-                .orElse(-1);
+            return IntStream.range(0, queue.size())
+                    .filter(i -> queue.toArray()[i].equals(range))
+                    .findFirst()
+                    .orElse(-1);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     @Override
     public boolean airportContainsAtLeastOneCounter() {
-        return !countersBySector.isEmpty();
+        readWriteLock.readLock().lock();
+        try {
+            return !countersBySector.isEmpty();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
 
@@ -299,16 +386,16 @@ public class SectorRepositoryImpl implements SectorRepository {
     private List<AssignedRange> obtainRanges(List<Counter> countersToAdd) {
         final List<AssignedRange> result = new LinkedList<>();
 
-        for(int i = 0; i < countersToAdd.size(); i++) {
+        for (int i = 0; i < countersToAdd.size(); i++) {
 
             final int start = countersToAdd.get(i).getNumber();
 
-            while(i < countersToAdd.size() - 1 && countersToAdd.get(i).getNumber() + 1 == countersToAdd.get(i + 1).getNumber()) {
+            while (i < countersToAdd.size() - 1 && countersToAdd.get(i).getNumber() + 1 == countersToAdd.get(i + 1).getNumber()) {
                 i++;
             }
-            if(i == countersToAdd.size() - 1) {
+            if (i == countersToAdd.size() - 1) {
                 final int end = countersToAdd.get(i).getNumber();
-                final AssignedRange assignedRange = new AssignedRange(start, end, null, null,end - start + 1);
+                final AssignedRange assignedRange = new AssignedRange(start, end, null, null, end - start + 1);
                 result.add(assignedRange);
 
                 break;
@@ -323,20 +410,11 @@ public class SectorRepositoryImpl implements SectorRepository {
         return result;
     }
 
-    private AssignedRange getAssignedRange(int rangeId, Sector sector) {
-        for (AssignedRange assignedRange : onGoingAirlineRange.get(sector)) {
-            if (assignedRange.getStart() <= rangeId && assignedRange.getEnd() >= rangeId) {
-                return assignedRange;
-            }
-        }
-        return null;
-    }
-
     private AssignedRange finishSetupOfAssignedRange(int count, Airline airline, List<Counter> countersToAdd, Sector sector, List<Flight> flights) {
         final AssignedRange assignedRange = new AssignedRange(countersToAdd.get(0).getNumber(), countersToAdd.get(countersToAdd.size() - 1).getNumber(), sector, airline, count);
         assignedRange.getCounters().addAll(countersToAdd);
         assignedRange.getFlights().addAll(flights);
-        for(Flight flight : flights) {
+        for (Flight flight : flights) {
             checkInService.addAvailableRangeForFlight(flight, assignedRange);
         }
         historyService.addAssignedRange(assignedRange);
@@ -346,10 +424,10 @@ public class SectorRepositoryImpl implements SectorRepository {
     }
 
     private Optional<AssignedRange> assignPendingRanges(Sector sector) {
-        if(!pendingAirlineRange.get(sector).isEmpty()) {
-            for(AssignedRange pendingRange: pendingAirlineRange.get(sector)) {
+        if (!pendingAirlineRange.get(sector).isEmpty()) {
+            for (AssignedRange pendingRange : pendingAirlineRange.get(sector)) {
                 Optional<AssignedRange> assigned = assignCounterRangeToAirline(pendingRange.getSector(), pendingRange.getAirline(), pendingRange.getFlights(), pendingRange.getTotalCounters());
-                if(assigned.isPresent()){
+                if (assigned.isPresent()) {
                     pendingAirlineRange.get(sector).remove(pendingRange);
                     return Optional.of(pendingRange);
                 }

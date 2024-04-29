@@ -11,7 +11,7 @@ public interface CheckInRepository {
 
     Optional<CheckIn> counterCheckIn(AssignedRange assignedRange);
 
-    AssignedRange getAvailableRangeForCheckIn(Booking booking);
+    AssignedRange getAvailableRangeForCheckIn(Flight flight);
 
     void addAvailableRangeForFlight(Flight flight, AssignedRange assignedRange);
 }

@@ -21,4 +21,6 @@ public interface HistoryService {
     List<AssignedRange> getAssignedRangesHistory();
 
     void addAssignedRange(AssignedRange assignedRange);
+
+    boolean airlineHasStartedCheckInOnFlights(Airline airline, List<Flight> flights);
 }
