@@ -8,15 +8,17 @@ import ar.edu.itba.pod.grpc.services.interfaces.NotificationsService;
 import ar.edu.itba.pod.grpc.services.interfaces.PassengerService;
 import ar.edu.itba.pod.grpc.services.interfaces.SectorService;
 
-import javax.swing.text.html.Option;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SectorServiceImpl implements SectorService {
     private static final SectorRepository sectorRepo = SectorRepositoryImpl.getInstance();
     private final NotificationsService notificationsService = new NotificationsServiceImpl();
     private final PassengerService passengerService = new PassengerServiceImpl();
     private final HistoryService historyService = new HistoryServiceImpl();
+
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     @Override
     public void addSector(String name) {
@@ -84,69 +86,65 @@ public class SectorServiceImpl implements SectorService {
     public Optional<AssignedRange> assignCounterRangeToAirline(Sector sector, Airline airline, List<Flight> flights, int count) {
         if(count <= 0)
             throw new IllegalArgumentException("Count must be greater than 0");
-
         if(!containsSector(sector))
             throw new IllegalArgumentException("Sector does not exist");
 
-        boolean hasExpectedPassengers = passengerService.eachFlightIsExpectingAtLeastOnePassenger(airline, flights);
-        if (!hasExpectedPassengers)
-            throw new IllegalArgumentException("Not expecting any passengers for at least one of the given flights");
-
-        // Check if airline has already been assigned to a range or is pending assignment
-        for (AssignedRange assignedRange : sectorRepo.getOnGoingAirlineRange().get(sector)) {
-            if (assignedRange.getAirline().equals(airline)) {
-                for (Flight flight : flights) {
-                    if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
-                    }
-                }
-            }
-        }
-
-        // Check if airline has already a pending range assignment
-        for (AssignedRange assignedRange : sectorRepo.getPendingAirlineRange(sector)) {
-            if (assignedRange.getAirline().equals(airline)) {
-                for (Flight flight : flights) {
-                    if (assignedRange.getFlights().contains(flight)) {
-                        throw new IllegalArgumentException("Pending range assignment already existing for at least one of the given flights");
-                    }
-                }
-            }
-        }
-
-        // Check if airline has already started checkin process
-        if (historyService.airlineHasStartedCheckInOnFlights(airline, flights))
-            throw new IllegalArgumentException("Flight check-in can't start more than once");
-
         Optional<AssignedRange> result;
-        result = sectorRepo.assignCounterRangeToAirline(sector, airline, flights, count);
+        boolean isPending = false;
+        readWriteLock.writeLock().lock();
+        try {
+            boolean hasExpectedPassengers = passengerService.eachFlightIsExpectingAtLeastOnePassenger(airline, flights);
+            if (!hasExpectedPassengers)
+                throw new IllegalArgumentException("Not expecting any passengers for at least one of the given flights");
 
-        if (notificationsService.isRegisteredForNotifications(airline)) {
-            if (result.isPresent()) {
-                NotificationData notification = NotificationData.newBuilder()
-                        .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS)
-                        .setAirline(airline)
-                        .setSector(sector)
-                        .setCounterRange(result.get())
-                        .setFlights(flights)
-                        .build();
-
-                notificationsService.sendNotification(notification);
-            } else {
-                AssignedRange pendingRange = new AssignedRange(sector, airline, count);
-                sectorRepo.getPendingAirlineRange(sector).add(pendingRange);
-
-                NotificationData notification = NotificationData.newBuilder()
-                        .setType(NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING)
-                        .setAirline(airline)
-                        .setCounterRange(pendingRange)
-                        .setSector(sector)
-                        .setFlights(flights)
-                        .build();
-
-                notificationsService.sendNotification(notification);
+            // Check if airline has already been assigned to a range or is pending assignment
+            for (AssignedRange assignedRange : sectorRepo.getOnGoingAirlineRange().get(sector)) {
+                if (assignedRange.getAirline().equals(airline)) {
+                    for (Flight flight : flights) {
+                        if (assignedRange.getFlights().contains(flight)) {
+                            throw new IllegalArgumentException("Range already assigned for at least one of the given flights");
+                        }
+                    }
+                }
             }
+
+            // Check if airline has already a pending range assignment
+            for (AssignedRange assignedRange : sectorRepo.getPendingAirlineRange(sector)) {
+                if (assignedRange.getAirline().equals(airline)) {
+                    for (Flight flight : flights) {
+                        if (assignedRange.getFlights().contains(flight)) {
+                            throw new IllegalArgumentException("Pending range assignment already existing for at least one of the given flights");
+                        }
+                    }
+                }
+            }
+
+            // Check if airline has already started checkin process
+            if (historyService.airlineHasStartedCheckInOnFlights(airline, flights))
+                throw new IllegalArgumentException("Flight check-in can't start more than once");
+
+            result = sectorRepo.assignCounterRangeToAirline(sector, airline, flights, count);
+            if(result.isEmpty()) {
+                isPending = true;
+                result = Optional.of(new AssignedRange(sector, airline, count));
+                sectorRepo.getPendingAirlineRange(sector).add(result.get());
+            }
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
+
+        if(notificationsService.isRegisteredForNotifications(airline)) {
+            NotificationData notification = NotificationData.newBuilder()
+                    .setAirline(airline)
+                    .setSector(sector)
+                    .setFlights(flights)
+                    .setCounterRange(result.get())
+                    .setType(isPending? NotificationType.NOTIFICATION_ASSIGNED_COUNTERS_PENDING : NotificationType.NOTIFICATION_ASSIGNED_COUNTERS)
+                    .build();
+
+            notificationsService.sendNotification(notification);
+        }
+
         return result;
     }
 
@@ -155,14 +153,19 @@ public class SectorServiceImpl implements SectorService {
         if( to < from)
             throw new IllegalArgumentException("To cannot be lower than from");
 
-        List<AssignedRange> assignedRangeList = sectorRepo.getOnGoingAirlineRangeBySector(sector);
-        List<ContiguousRange> contiguousRangeList = sectorRepo.getContiguosRangesBySector(sector);
+        List<AssignedRange> assignedRangeList;
+        List<ContiguousRange> contiguousRangeList;
+        readWriteLock.readLock().lock();
+        try {
+             assignedRangeList = sectorRepo.getOnGoingAirlineRangeBySector(sector);
+             contiguousRangeList = sectorRepo.getContiguosRangesBySector(sector);
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
 
         List<Range> ranges = new ArrayList<>();
         contiguousRangeList.sort(Comparator.comparingInt(Range::getStart));
         assignedRangeList.sort(Comparator.comparingInt(Range::getStart));
-
-
 
         for (ContiguousRange contiguous:contiguousRangeList) {
             int start = contiguous.getStart();
