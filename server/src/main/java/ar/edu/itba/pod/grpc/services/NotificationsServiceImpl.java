@@ -14,7 +14,7 @@ import java.util.concurrent.BlockingQueue;
 public class NotificationsServiceImpl implements NotificationsService {
     private static final NotificationsRepository notificationRepository = NotificationsRepositoryImpl.getInstance();
     private final PassengerService passengerService = new PassengerServiceImpl();
-    private final Object notificationsLock = "notificationsLock";
+
     @Override
     public BlockingQueue<NotificationData> registerForNotifications(Airline airline) {
         if (isRegisteredForNotifications(airline)) {
@@ -22,10 +22,8 @@ public class NotificationsServiceImpl implements NotificationsService {
         }
 
         BlockingQueue<NotificationData> notificationQueue;
-        synchronized (notificationsLock) {
-            notificationQueue = notificationRepository.registerForNotifications(airline);
-            notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_REGISTER, airline));
-        }
+        notificationQueue = notificationRepository.registerForNotifications(airline);
+        notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_REGISTER, airline));
         return notificationQueue;
     }
 
@@ -39,10 +37,8 @@ public class NotificationsServiceImpl implements NotificationsService {
             throw new IllegalArgumentException("There are no expected passengers waiting for this airline");
         }
 
-        synchronized (notificationsLock) {
-            notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_UNREGISTER, airline));
-            notificationRepository.unregisterForNotifications(airline);
-        }
+        notificationRepository.sendNotification(new NotificationData(NotificationType.NOTIFICATION_UNREGISTER, airline));
+        notificationRepository.unregisterForNotifications(airline);
     }
 
     @Override
@@ -50,9 +46,8 @@ public class NotificationsServiceImpl implements NotificationsService {
         if (!isRegisteredForNotifications(notificationData.getAirline())) {
             throw new IllegalArgumentException("Airline is not registered for notifications");
         }
-        synchronized (notificationsLock) {
-            notificationRepository.sendNotification(notificationData);
-        }
+
+        notificationRepository.sendNotification(notificationData);
     }
 
     @Override
